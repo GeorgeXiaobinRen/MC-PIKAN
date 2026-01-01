@@ -1,6 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
+from torchinfo import summary
 from problems.Volterra_1D import solution, train
 from models import *
 
@@ -19,7 +20,7 @@ if __name__ == "__main__":
 	s1 = torch.rand(n_s, device=device, dtype=dtype)
 	s2 = torch.rand(n_s, device=device, dtype=dtype)
 	s = [s1, s2]
-	m = 0 # eval(input())
+	m = 1 # eval(input())
 	# 构建模型
 	if m==0:
 		model = PINNModel(num_layers=2, hidden_dim=4, dtype=dtype).to(device)
@@ -69,10 +70,11 @@ if __name__ == "__main__":
 	print(relative_loss.item())
 	# 显示参数
 	print(p.size() for p in model.parameters())
-	print(model.lys[0].weight)
-	print(model.lys[0].bias)
-	print(model.lys[1].weight)
-	print(model.lys[1].bias)
+	# print(model.lys[0].weight)
+	# print(model.lys[0].bias)
+	# print(model.lys[1].weight)
+	# print(model.lys[1].bias)
+	summary(model, input_size=(1, 1), verbose=2)
 
 	# 显示图像0
 	plt.tight_layout()  # 自动调整子图间距
