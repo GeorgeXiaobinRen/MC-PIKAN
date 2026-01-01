@@ -5,16 +5,10 @@ def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_
 	print(f"Max Epochs: {max_epochs}, Learning Rate: {lr}, Epsilon: {epsilon}, Interval of Display: {show_iter}, Dynamic LR: {dynamic_lr}")
 
 	lr0 = lr
-	if opt_method == "Adam":
-		optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-	elif opt_method == "LBFGS":
-		optimizer = torch.optim.LBFGS(model.parameters(), lr=lr)
-	elif opt_method == "SGD":
-		optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-	elif opt_method == "RMSprop":
-		optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
-	else:
-		raise ValueError("Invalid optimizer method")
+	try:
+		optimizer = torch.optim.__dict__[opt_method](model.parameters(), lr=lr)
+	except:
+		raise ValueError("Invalid optimizer method.")
 	time0 = time.time()
 
 	for epoch in range(max_epochs):
