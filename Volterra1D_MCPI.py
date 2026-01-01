@@ -8,9 +8,7 @@ from models import *
 if __name__ == "__main__":
 	plt.rcParams['font.family'] = 'Microsoft YaHei'
 	plt.rcParams['axes.unicode_minus'] = False
-	# set up the random seed
-	setup_seed(233)
-	# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+	setup_seed(233) # set up the random seed
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	dtype = torch.float32
 	n_s = 200
