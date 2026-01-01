@@ -10,21 +10,21 @@ if __name__ == "__main__":
 	plt.rcParams['axes.unicode_minus'] = False
 	setup_seed(233) # set up the random seed
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	dtype = torch.float32
+	dtype = torch.float64
 	n_s = 200
-	n_e = 1000
-	# 定义域
+	n_e = 10000
+
 	x = torch.linspace(0, 1, 200, device=device, dtype=dtype)
 	s1 = torch.rand(n_s, device=device, dtype=dtype)
 	s2 = torch.rand(n_s, device=device, dtype=dtype)
 	s = [s1, s2]
 
 	# build model
-	m = 1  # eval(input())
+	m = 1
 	if m==0:
-		model = PINNModel(num_layers=2, hidden_dim=4, dtype=dtype).to(device)
+		model = PINNModel(num_layers=2, hidden_dim=6, dtype=dtype).to(device)
 	elif m==1:
-		model = CPIKANModel(num_layers=2, hidden_dim=2, degree=2, dtype=dtype).to(device)
+		model = CPIKANModel(num_layers=2, hidden_dim=3, degree=3, dtype=dtype).to(device)
 	else:
 		raise ValueError("Invalid value: m should be 0 or 1.")
 	print_modelsize(model)
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
 	# train model
 	time0 = time.time()
-	train(model, loss_fn, x, s, lr=0.01, max_epochs=n_e)
+	train(model, loss_fn, x, s, lr=0.1, max_epochs=n_e, dynamic_lr=True)
 	time1 = time.time()
 	print("Training time: " + str(time1 - time0) + "s")
 	# prediction result
@@ -67,14 +67,15 @@ if __name__ == "__main__":
 
 	# add statistical information of residual
 	relative_loss = torch.sqrt((residual**2).mean())/torch.sqrt((u_solution**2).mean())
-	print(relative_loss.item())
+	l2_loss = torch.sqrt((residual**2).mean())
+	print(f"Relative loss: {relative_loss.item()}")
+	print(f"L2 loss: {l2_loss.item()}")
 	# 显示参数
-	print(p.size() for p in model.parameters())
 	# print(model.lys[0].weight)
 	# print(model.lys[0].bias)
 	# print(model.lys[1].weight)
 	# print(model.lys[1].bias)
-	summary(model, input_size=(1, 1), verbose=2)
+	summary(model, input_size=(1, 1), verbose=2, dtypes=[dtype, dtype])
 
 	# display image
 	plt.tight_layout() # automatically adjust subplot spacing

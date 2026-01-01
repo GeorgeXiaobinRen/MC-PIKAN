@@ -1,6 +1,6 @@
 import torch, time
 
-def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=True):
+def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False):
 	print("Start training...")
 	print(f"Max Epochs: {max_epochs}, Learning Rate: {lr}, Epsilon: {epsilon}, Interval of Display: {show_iter}, Dynamic LR: {dynamic_lr}")
 
