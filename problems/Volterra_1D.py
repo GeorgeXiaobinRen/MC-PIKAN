@@ -31,9 +31,8 @@ def in_mean(model, x, s):
 	return inner_mean
 
 def loss_fn(model, x, s):
-	s1 = s[0]
-	s2 = s[1]
-	loss_mc = torch.mean(torch.abs(in_mean(model, x, s1) * in_mean(model, x, s2)))
+	s0 = s[0]
+	loss_mc = torch.mean(torch.abs(in_mean(model, x, s0) **2))
 	return loss_mc
 
 # 训练过程

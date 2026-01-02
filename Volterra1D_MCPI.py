@@ -14,10 +14,9 @@ if __name__ == "__main__":
 	n_s = 200
 	n_e = 10000
 
-	x = torch.linspace(0, 1, 200, device=device, dtype=dtype)
-	s1 = torch.rand(n_s, device=device, dtype=dtype)
-	s2 = torch.rand(n_s, device=device, dtype=dtype)
-	s = [s1, s2]
+	x = torch.linspace(0, 1, 80, device=device, dtype=dtype)
+	s0 = torch.rand(n_s, device=device, dtype=dtype)
+	s = [s0]
 
 	# build model
 	m = 1
