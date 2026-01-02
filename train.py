@@ -1,10 +1,9 @@
 import torch, time
 
-def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False):
+def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5):
 	print("Start training...")
 	print(f"Max Epochs: {max_epochs}, Learning Rate: {lr}, Epsilon: {epsilon}, Interval of Display: {show_iter}, Dynamic LR: {dynamic_lr}")
 
-	lr0 = lr
 	try:
 		optimizer = torch.optim.__dict__[opt_method](model.parameters(), lr=lr)
 	except:
@@ -24,9 +23,10 @@ def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_
 		optimizer.step()
 
 		if dynamic_lr:
-			lr = lr * (1e-1 ** (epoch // 1000))
-			for param_group in optimizer.param_groups:
-				param_group['lr'] = lr
+			if epoch > 0 and epoch % lr_iter == 0:
+				lr *= lr_decay
+				for param_group in optimizer.param_groups:
+					param_group['lr'] = lr
 
 		if epoch % show_iter == 0:
 			time1 = time.time()
