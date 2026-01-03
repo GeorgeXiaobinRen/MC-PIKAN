@@ -6,12 +6,15 @@ def K(x, s):
 	# return 1
 	return -torch.sin(torch.pi * (x - s))
 
+
 def f(x):
 	# return 1
 	return (1 + 1/(2*torch.pi)) * torch.sin(torch.pi*x) - x * torch.cos(torch.pi*x)/2
 
+
 def solution(x):
 	return torch.sin(torch.pi*x)
+
 
 # 损失函数部分
 def in_mean(model, x, s):
@@ -28,6 +31,7 @@ def in_mean(model, x, s):
 	product = x_expanded * k_vals * u_vals  # (N_x, N_s)
 	inner_mean = model(x.view(-1, 1)).view(-1, ) - f(x) - torch.mean(product, dim=1)  # (N_x,)
 	return inner_mean
+
 
 def loss_fn(model, x, s):
 	s0 = s[0]

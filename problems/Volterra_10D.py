@@ -14,7 +14,7 @@ def f(X):
 
 
 def solution(X):
-	return (X[:, 0]*(X[:, 1]+X[:, 2]+X[:, 3])*torch.sin(X[:, 4]+X[:, 5]+X[:, 6])*torch.cos(X[:, 7]+X[:, 8]+X[:, 9])).view(-1, )
+	return (X[:, 0]*(X[:, 1]+X[:, 2]+X[:, 3])*torch.sin(X[:, 4]+X[:, 5]+X[:, 6])*torch.cos(X[:, 7]+X[:, 8]+X[:, 9]))
 
 
 def I(X):
@@ -153,7 +153,5 @@ if __name__ == '__main__':
 	x_b = sample_boundary_points(dim=10, num_samples_per_boundary=100, device=device, dtype=dtype,
 								 bound=True).requires_grad_(True)  # torch.Size([20000, 10])
 	x_i = torch.rand(1000, 10, device=device, dtype=dtype)  # torch.Size([10000, 10])
-	ksi1 = torch.rand(10, 10, device=device, dtype=dtype)
-	ksi2 = torch.rand(10, 10, device=device, dtype=dtype)
-	ksi = [ksi1, ksi2]
+	ksi = torch.rand(10, 10, device=device, dtype=dtype)
 	print(loss_ph(solution, x_i, ksi), loss_bc(solution, x_b))
