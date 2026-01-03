@@ -16,6 +16,7 @@ if __name__ == "__main__":
 
 	x = torch.linspace(0, 1, 80, device=device, dtype=dtype)
 	s0 = torch.rand(n_s, device=device, dtype=dtype)
+	print(s0.size())
 	s = [s0]
 
 	# build model
@@ -69,11 +70,15 @@ if __name__ == "__main__":
 	l2_loss = torch.sqrt((residual**2).mean())
 	print(f"Relative loss: {relative_loss.item()}")
 	print(f"L2 loss: {l2_loss.item()}")
-	# 显示参数
-	# print(model.lys[0].weight)
-	# print(model.lys[0].bias)
-	# print(model.lys[1].weight)
-	# print(model.lys[1].bias)
+
+	# display the parameters
+	if m == 0:
+		for i in range(len(model.lys)):
+			print(model.lys[i].weight)
+			print(model.lys[i].bias)
+	elif m == 1:
+		for i in range(len(model.lys)):
+			print(model.lys[i].weight)
 	summary(model, input_size=(1, 1), verbose=2, dtypes=[dtype, dtype])
 
 	# display image

@@ -12,8 +12,10 @@ def f(X):
 	x789 = X[:, 7]+X[:, 8]+X[:, 9]
 	return (x123*torch.sin(x456)*torch.cos(x789) + 3*t*torch.sin(x456)*torch.cos(x789) + 3*t*x123*torch.cos(x456)*torch.cos(x789) - 3*t*x123*torch.sin(x456)*torch.sin(x789)).view(-1, )
 
+
 def solution(X):
 	return (X[:, 0]*(X[:, 1]+X[:, 2]+X[:, 3])*torch.sin(X[:, 4]+X[:, 5]+X[:, 6])*torch.cos(X[:, 7]+X[:, 8]+X[:, 9])).view(-1, )
+
 
 def I(X):
 	def cos(x):
@@ -27,8 +29,10 @@ def I(X):
 	I4 = -sin(x7+x8+x9) + sin(x7+x8) + sin(x7+x9) + sin(x8+x9) - sin(x7) - sin(x8) - sin(x9)
 	return (I1*I2*I3*I4).view(-1, )
 
+
 def g(X):
 	return (f(X) - solution(X) - I(X)).view(-1, )
+
 
 def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", dtype=torch.float32, bound=False):
 	"""
@@ -50,21 +54,24 @@ def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", 
 		boundary_tensor = boundary_tensor.view(-1, dim)
 	return boundary_tensor
 
-def in_mean(model, x_i, ksi):
+
+def in_mean(model, x_i, s):
 	N_x_i = x_i.size(0)
-	N_ksi = ksi.size(0)
-	x_i_expanded = x_i.unsqueeze(1).expand(-1, N_ksi, -1)
-	ksi_expanded = ksi.unsqueeze(0).expand(N_x_i, -1, -1)
-	x_i_ksi = x_i_expanded * ksi_expanded # torch.Size([10000, 10, 10])
-	Imean = torch.mean(model(x_i_ksi.flatten(0, 1)).view(N_x_i, N_ksi, ), dim=1).view(-1, )
+	N_s = s.size(0)
+	x_i_expanded = x_i.unsqueeze(1).expand(-1, N_s, -1)
+	s_expanded = s.unsqueeze(0).expand(N_x_i, -1, -1)
+	x_i_s = x_i_expanded * s_expanded # torch.Size([10000, 10, 10])
+	Imean = torch.mean(model(x_i_s.flatten(0, 1)).view(N_x_i, N_s, ), dim=1).view(-1, )
 	product = (x_i[:, 0] * torch.prod(x_i, dim=-1)).view(-1, )
 	Int = model(x_i).view(-1, ) + g(x_i) + product * Imean - f(x_i)
 	return Int.view(-1, )
 
-def loss_ph(model, x, ksi):
+
+def loss_ph(model, x, s):
 	# loss = torch.sum(torch.abs(in_mean(model, x_i, ksi1) * in_mean(model, x_i, ksi2)))/2
-	loss = torch.mean(torch.abs(in_mean(model, x, ksi) ** 2 ))
+	loss = torch.mean(torch.abs(in_mean(model, x, s) ** 2))
 	return loss
+
 
 def loss_bc(model, x):
 	x = x.detach().requires_grad_(True)
@@ -75,40 +82,13 @@ def loss_bc(model, x):
 	loss = torch.mean((sum_of_partials - f(x).view(-1, )) ** 2)
 	return loss
 
-def loss_fn(model, x, ksi):
-	loss1 = loss_ph(model, x, ksi)
+
+def loss_fn(model, x, s):
+	loss1 = loss_ph(model, x, s)
 	loss2 = loss_bc(model, x)
 	minloss = torch.min(loss1, loss2) + 1e-16
-	# print(loss1, loss2)
 	return loss1**2/minloss + loss2**2/minloss
 	# return loss1 + loss2
-
-def loss_fn2(model, x):
-	loss1 = torch.mean((model(x).view(-1, ) - solution(x)) ** 2)
-	loss2 = torch.mean((model(x).view(-1, ) - solution(x)) ** 2)
-	return loss1 + loss2
-
-
-def train_LBFGS(model, x, ksi, epochs=5000, lr=1e-3, epsilon = 1e-30, show_iter=200):
-	lr0 = lr
-	time0 = time.time()
-	optimizer = torch.optim.LBFGS(model.parameters(), lr=lr)
-
-	def closure():
-		optimizer.zero_grad()
-		loss = loss_fn(model, x, ksi)
-		loss.backward()
-		return loss
-
-	for epoch in range(epochs):
-		optimizer.step(closure)
-		if epoch % show_iter == 0:
-			loss = closure()
-			time1 = time.time()
-			print(f"Epoch {epoch}, Loss: {loss.item()}, Learning Rate:{lr}, Speed: {show_iter/(time1-time0)} iter/s")
-			time0 = time1
-			if loss.item() < epsilon:
-				break
 
 
 def generate_full_grid_torch(dim=10, points_per_dim=2, device='cpu', dtype=torch.float32):
@@ -130,6 +110,7 @@ def generate_full_grid_torch(dim=10, points_per_dim=2, device='cpu', dtype=torch
 	]).reshape(-1, dim)
 
 	return grid
+
 
 def generate_grid_with_specific_dims(fixed_values, variable_dims_indices=[2, 4], n_points=5, dtype=torch.float32):
 	"""

@@ -23,7 +23,6 @@ class ChebyKANLayer(nn.Module):
         x = x.view((-1, self.inputdim, 1)).expand(
             -1, -1, self.degree + 1
         )  # shape = (batch_size, inputdim, self.degree + 1)
-        # Apply acos
         x = x.acos()
         # Multiply by arange [0 .. degree]
         x *= self.arange
@@ -69,7 +68,7 @@ class unoptd_ChebyKANLayer(nn.Module):
         return y
 
 
-# JacobiKAN的层
+# JacobiKAN layers
 class JacobiKANLayer(nn.Module):
     def __init__(self, input_dim, output_dim, degree, a=1.0, b=1.0):
         super(JacobiKANLayer, self).__init__()
