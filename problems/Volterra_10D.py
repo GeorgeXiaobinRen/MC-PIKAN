@@ -14,7 +14,7 @@ def f(X):
 
 
 def solution(X):
-	return (X[:, 0]*(X[:, 1]+X[:, 2]+X[:, 3])*torch.sin(X[:, 4]+X[:, 5]+X[:, 6])*torch.cos(X[:, 7]+X[:, 8]+X[:, 9]))
+	return (X[:, 0]*(X[:, 1]+X[:, 2]+X[:, 3])*torch.sin(X[:, 4]+X[:, 5]+X[:, 6])*torch.cos(X[:, 7]+X[:, 8]+X[:, 9])).view(-1, )
 
 
 def I(X):
@@ -55,21 +55,20 @@ def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", 
 	return boundary_tensor
 
 
-def in_mean(model, x_i, s):
-	N_x_i = x_i.size(0)
+def in_mean(model, X, s):
+	N_X = X.size(0)
 	N_s = s.size(0)
-	x_i_expanded = x_i.unsqueeze(1).expand(-1, N_s, -1)
-	s_expanded = s.unsqueeze(0).expand(N_x_i, -1, -1)
-	x_i_s = x_i_expanded * s_expanded # torch.Size([10000, 10, 10])
-	Imean = torch.mean(model(x_i_s.flatten(0, 1)).view(N_x_i, N_s, ), dim=1).view(-1, )
-	product = (x_i[:, 0] * torch.prod(x_i, dim=-1)).view(-1, )
-	Int = model(x_i).view(-1, ) + g(x_i) + product * Imean - f(x_i)
+	X_expanded = X.unsqueeze(1).expand(-1, N_s, -1)
+	s_expanded = s.unsqueeze(0).expand(N_X, -1, -1)
+	X_s = X_expanded * s_expanded # torch.Size([N_X, N_s, dim])
+	Imean = torch.mean(model(X_s.flatten(0, 1)).view(N_X, N_s, ), dim=1).view(-1, )
+	product = (X[:, 0] * torch.prod(X, dim=-1)).view(-1, )
+	Int = model(X).view(-1, ) + g(X) + product * Imean - f(X)
 	return Int.view(-1, )
 
 
 def loss_ph(model, x, s):
-	# loss = torch.sum(torch.abs(in_mean(model, x_i, ksi1) * in_mean(model, x_i, ksi2)))/2
-	loss = torch.mean(torch.abs(in_mean(model, x, s) ** 2))
+	loss = torch.mean(in_mean(model, x, s) ** 2)
 	return loss
 
 
