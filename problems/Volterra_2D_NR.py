@@ -9,27 +9,23 @@ def f(X):
 def solution(X):
 	return X
 
-def F(model, X, s):
+def F(u, X, s):
 	N_X = X.size(0)
 	N_s = s.size(0)
 	X_e = X.unsqueeze(1).expand(-1, N_s, -1)
 	x = X_e[:, :, 0]
-	print(x.size())
 	tau = X_e[:, :, 1]
-
 	s_e = s.unsqueeze(0).expand(N_X, -1, -1)
 	s1 = s_e[:, :, 0]
-	print(s1.size())
-
 	s2 = s_e[:, :, 1]
 	eta = s2*x+s1*tau/10*(1-s2)
 	xi = s1*tau
 	X_stacked = torch.stack([eta, xi], dim=-1)
-	F_result = (x+tau+eta+xi)*(model(X_stacked.flatten(0, 1)).view(N_X, N_s, ))**2
+	F_result = (x+tau+eta+xi)*(u(X_stacked.flatten(0, 1)).view(N_X, N_s, ))**2
 	return F_result
 
 
-def I1(model, X):
+def I1(u, X, s):
 	return 0
 
 if __name__ == "__main__":
@@ -39,7 +35,7 @@ if __name__ == "__main__":
 
 	model = SimpleModel()
 
-	X = torch.tensor([[0.5, 0.5], [0.2, 0.8]], dtype=torch.float32)
+	X = torch.tensor([[0.5, 0.5], [0.2, 0.8], [0.2, 0.8], [0.2, 0.8], [0.2, 0.8]], dtype=torch.float32)
 	s = torch.tensor([[0.1, 0.2], [0.3, 0.4], [0.3, 0.4]], dtype=torch.float32)
 
 
