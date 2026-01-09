@@ -2,7 +2,7 @@ import time
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
 from torchinfo import summary
-from problems.Volterra_1D import solution, loss_fn
+from problems.Volterra_1D import Volterra_1D
 from train import train
 from models import *
 

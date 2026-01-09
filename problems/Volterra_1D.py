@@ -1,19 +1,32 @@
 import time
 import torch
 
-
-def K(x, s):
-	# return 1
-	return -torch.sin(torch.pi * (x - s))
-
-
-def f(x):
-	# return 1
-	return (1 + 1/(2*torch.pi)) * torch.sin(torch.pi*x) - x * torch.cos(torch.pi*x)/2
+class Volterra_1D():
+	def __init__(self, X_grid, s):
+		self.X_grid = X_grid
+		self.s = s
+		self.N_X = X_grid.size(0)
+		self.N_s = s.size(0)
+		X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
 
 
-def solution(x):
-	return torch.sin(torch.pi*x)
+	def K(self, x, s):
+		return -torch.sin(torch.pi * (x - s))
+
+
+	def f(self, x):
+		return (1 + 1 / (2 * torch.pi)) * torch.sin(torch.pi * x) - x * torch.cos(torch.pi * x) / 2
+
+
+	def solution(self, x):
+		return torch.sin(torch.pi * x)
+
+
+
+
+
+
+
 
 
 # 损失函数部分

@@ -1,6 +1,6 @@
 import torch, time
 
-def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5):
+def train(model, question, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5):
 	print("Start training...")
 	print(f"Max Epochs: {max_epochs}, Learning Rate: {lr}, Epsilon: {epsilon}, Interval of Display: {show_iter}, Dynamic LR: {dynamic_lr}")
 
@@ -12,7 +12,7 @@ def train(model, loss_fn, x, ksi, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_
 
 	for epoch in range(max_epochs):
 		optimizer.zero_grad()
-		loss = loss_fn(model, x, ksi)
+		loss = question.loss_fn(model)
 		loss.backward()
 
 		total_grad_norm = 0
