@@ -1,7 +1,6 @@
-import time
 import torch
 
-class Volterra_1D():
+class Volterra1D:
 	def __init__(self, X_grid, s):
 		self.X_grid = X_grid
 		self.s = s
@@ -10,17 +9,17 @@ class Volterra_1D():
 		self.x_e = X_grid.view(-1, 1).expand(-1, self.N_s)
 		self.s_e = s.view(1, -1).expand(self.N_X, -1)
 
+		def K(x, s):
+			return -torch.sin(torch.pi * (x - s))
+		self.K = K
 
-	def K(self, x, s):
-		return -torch.sin(torch.pi * (x - s))
+		def f(x):
+			return (1 + 1 / (2 * torch.pi)) * torch.sin(torch.pi * x) - x * torch.cos(torch.pi * x) / 2
+		self.f = f
 
-
-	def f(self, x):
-		return (1 + 1 / (2 * torch.pi)) * torch.sin(torch.pi * x) - x * torch.cos(torch.pi * x) / 2
-
-
-	def solution(self, x):
-		return torch.sin(torch.pi * x)
+		def solution(x):
+			return torch.sin(torch.pi * x)
+		self.solution = solution
 
 
 	def loss_fn(self, model):

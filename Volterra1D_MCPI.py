@@ -2,7 +2,7 @@ import time
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
 from torchinfo import summary
-from problems.Volterra_1D import Volterra_1D
+from problems.Volterra import Volterra1D
 from train import train
 from models import *
 
@@ -10,14 +10,13 @@ if __name__ == "__main__":
 	plt.rcParams['axes.unicode_minus'] = False
 	setup_seed(233) # set up the random seed
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	dtype = torch.float64
-	n_s = 200
+	dtype = torch.float32
+	n_s = 2000
 	n_e = 10000
 
 	x = torch.linspace(0, 1, 80, device=device, dtype=dtype)
-	s0 = torch.rand(n_s, device=device, dtype=dtype)
-	print(s0.size())
-	s = [s0]
+	s = torch.rand(n_s, device=device, dtype=dtype)
+	question = Volterra1D(X_grid=x, s=s)
 
 	# build model
 	m = 1
@@ -32,14 +31,14 @@ if __name__ == "__main__":
 
 	# train model
 	time0 = time.time()
-	train(model, loss_fn, x, s, lr=0.1, max_epochs=n_e, dynamic_lr=True)
+	train(model, question, lr=0.1, max_epochs=n_e, dynamic_lr=True)
 	time1 = time.time()
 	print("Training time: " + str(time1 - time0) + "s")
 	# prediction result
 	with torch.no_grad():
 		x_pred = torch.linspace(0, 1, 2000, device=device, dtype=dtype)
 		u_pred = model(x_pred.view(-1, 1))
-		u_solution = solution(x_pred).view(-1, 1)
+		u_solution = question.solution(x_pred).view(-1, 1)
 		residual = torch.abs(u_solution - u_pred)
 
 
