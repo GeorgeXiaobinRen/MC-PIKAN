@@ -47,10 +47,13 @@ class Volterra2DNR:
 
 		def f(X):
 			x, t = X[:, 0], X[:, 1]
-			y = -331 * t ** 7 / 720000 - 2153 * t ** 6 * x / 9000000 + 7 * t ** 4 * x ** 3 / 9 + 29 * t ** 3 * x ** 4 / 18 + 6 * t ** 2 * x ** 5 / 5 + 11 * t * x ** 6 / 30 + t * x * torch.exp(
-				torch.tensor(3, dtype=X.dtype)) / 1125 + t * x * torch.exp(
-				torch.tensor(2, dtype=X.dtype)) / 100 + 14447 * t * x / 7200 + x ** 2 + 12871 / 45360000 + torch.exp(
-				torch.tensor(4, dtype=X.dtype)) / 16000 + 8 * torch.exp(torch.tensor(3, dtype=X.dtype)) / 10125
+			u_xt = x**2 + 2*x*t
+			I1 = -441 * t ** 7 / 2000000 + t ** 6 * (
+						-2153 * t / 9000000 - 2153 * x / 9000000) + t ** 4 * x ** 3 / 3 + t ** 3 * (
+							 4 * t * x ** 3 / 9 + 10 * x ** 4 / 9) + t ** 2 * (t * x ** 4 / 2 + x ** 5) + t * (
+							 t * x ** 5 / 5 + 11 * x ** 6 / 30)
+			I2 = 47 * t * x / 7200 + t * x * torch.e ** 2 / 100 + (72 * t * x + 64) * torch.e ** 3 / 81000 + 12871 / 45360000 + torch.e ** 4 / 16000
+			y = u_xt + I1 + I2
 			return y
 		self.f = f
 
@@ -58,19 +61,18 @@ class Volterra2DNR:
 			return X[:, 0] **2 + 2 * X[:, 0] * X[:, 1]
 		self.solution = solution
 
-
 	def loss_fn(self, u):
-		eta1 = self.s2 * self.x + self.s1 * self.t / 10 * (1 - self.s2)
-		xi1 = self.s1 * self.t
+		eta1 = self.s1 * self.x + self.s2 * self.t / 10 * (1 - self.s1)
+		xi1 = self.s2 * self.t
 		X_stacked1 = torch.stack([eta1, xi1], dim=-1)
 		F1 = (self.x + self.t + eta1 + xi1) * (u(X_stacked1.flatten(0, 1)).view(self.N_X, self.N_s, )) ** 2
-		I1 = self.t * (self.x - self.s1 * self.t / 10) * F1
-		eta2 = (1 - self.s1) * self.s2 / 10 + self.s1 * torch.exp(self.s2) / 5
-		xi2 = self.s2
+		I1 = self.t * (self.x - self.s2 * self.t / 10) * F1
+		eta2 = (1 - self.s2) * self.s1 / 10 + self.s2 * torch.exp(self.s1) / 5
+		xi2 = self.s1
 		X_stacked2 = torch.stack([eta2, xi2], dim=-1)
-		F2 = (self.x * self.t + eta2 * xi2 ** 2) * (u(X_stacked2.flatten(0, 1)).view(self.N_X, self.N_s, )) ** 2
-		I2 = (torch.exp(self.s2) / 5 - self.s2 / 10) * F2
-		in_mean = u(self.X_grid).view(-1, ) + torch.mean(I1+I2, dim=1) - self.f(self.X_grid)
+		F2 = (self.x * self.t + eta2 * xi2 ** 2) * (u(X_stacked2.flatten(0, 1)).view(self.N_X, self.N_s, ))
+		I2 = (torch.exp(self.s1) / 5 - self.s1 / 10) * F2
+		in_mean = u(self.X_grid).view(-1, ) + torch.mean(I1 + I2, dim=1) - self.f(self.X_grid)
 		loss = torch.mean(in_mean ** 2)
 		return loss
 
@@ -78,9 +80,9 @@ class Volterra2DNR:
 
 
 if __name__ == "__main__":
-	x = torch.linspace(0, 1, 10)
+	x = torch.linspace(0, 1, 30)
 	X = torch.cartesian_prod(x, x)
-	s = torch.rand(1000, 2)
+	s = torch.rand(10000, 2)
 
 	question = Volterra2DNR(X, s)
 
@@ -99,7 +101,7 @@ if __name__ == "__main__":
 	print(f"F函数返回值: {result}")
 
 	X = torch.linspace(0, 1, 100)
-	s = torch.rand(1000)
+	s = torch.rand(500)
 
 	question = Volterra1D(X, s)
 

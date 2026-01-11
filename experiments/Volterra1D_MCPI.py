@@ -17,6 +17,8 @@ if __name__ == "__main__":
 	x = torch.linspace(0, 1, 80, device=device, dtype=dtype)
 	s = torch.rand(n_s, device=device, dtype=dtype)
 	question = Volterra1D(X_grid=x, s=s)
+	result = question.loss_fn(question.solution)
+	print(f"loss function return value: {result}")
 
 	# build model
 	m = 1
