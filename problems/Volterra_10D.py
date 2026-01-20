@@ -5,35 +5,6 @@ import time
 from torch.optim.lr_scheduler import StepLR
 
 
-def f(X):
-	t = X[:, 0]
-	x123 = X[:, 1]+X[:, 2]+X[:, 3]
-	x456 = X[:, 4]+X[:, 5]+X[:, 6]
-	x789 = X[:, 7]+X[:, 8]+X[:, 9]
-	return (x123*torch.sin(x456)*torch.cos(x789) + 3*t*torch.sin(x456)*torch.cos(x789) + 3*t*x123*torch.cos(x456)*torch.cos(x789) - 3*t*x123*torch.sin(x456)*torch.sin(x789)).view(-1, )
-
-
-def solution(X):
-	return (X[:, 0]*(X[:, 1]+X[:, 2]+X[:, 3])*torch.sin(X[:, 4]+X[:, 5]+X[:, 6])*torch.cos(X[:, 7]+X[:, 8]+X[:, 9])).view(-1, )
-
-
-def I(X):
-	def cos(x):
-		return torch.cos(x)
-	def sin(x):
-		return torch.sin(x)
-	t, x1, x2, x3, x4, x5, x6, x7, x8, x9 = X[:, 0], X[:, 1], X[:, 2], X[:, 3], X[:, 4], X[:, 5], X[:, 6], X[:, 7], X[:, 8], X[:, 9]
-	I1 = t**3/3
-	I2 = x1*x2*x3*(x1+x2+x3)/2
-	I3 = cos(x4+x5+x6) - cos(x4+x5) - cos(x4+x6) - cos(x5+x6) + cos(x4) + cos(x5) + cos(x6) - 1
-	I4 = -sin(x7+x8+x9) + sin(x7+x8) + sin(x7+x9) + sin(x8+x9) - sin(x7) - sin(x8) - sin(x9)
-	return (I1*I2*I3*I4).view(-1, )
-
-
-def g(X):
-	return (f(X) - solution(X) - I(X)).view(-1, )
-
-
 def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", dtype=torch.float32, bound=False):
 	"""
 	生成 [0,1]^dim 每个边界上的随机边界点。
@@ -55,39 +26,6 @@ def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", 
 	return boundary_tensor
 
 
-def in_mean(model, X, s):
-	N_X = X.size(0)
-	N_s = s.size(0)
-	X_expanded = X.unsqueeze(1).expand(-1, N_s, -1)
-	s_expanded = s.unsqueeze(0).expand(N_X, -1, -1)
-	X_s = X_expanded * s_expanded # torch.Size([N_X, N_s, dim])
-	Imean = torch.mean(model(X_s.flatten(0, 1)).view(N_X, N_s, ), dim=1).view(-1, )
-	product = (X[:, 0] * torch.prod(X, dim=-1)).view(-1, )
-	Int = model(X).view(-1, ) + g(X) + product * Imean - f(X)
-	return Int.view(-1, )
-
-
-def loss_ph(model, x, s):
-	loss = torch.mean(in_mean(model, x, s) ** 2)
-	return loss
-
-
-def loss_bc(model, x):
-	x = x.detach().requires_grad_(True)
-	u = model(x)
-	gradients = torch.autograd.grad(u.sum(), x, create_graph=True)[0]
-	sum_of_partials = torch.sum(gradients, dim=1).view(-1, )  # 沿特征维度求和
-	# loss = torch.sum((sum_of_partials - f(x).view(-1, ))**2)/2
-	loss = torch.mean((sum_of_partials - f(x).view(-1, )) ** 2)
-	return loss
-
-
-def loss_fn(model, x, s):
-	loss1 = loss_ph(model, x, s)
-	loss2 = loss_bc(model, x)
-	minloss = torch.min(loss1, loss2) + 1e-16
-	return loss1**2/minloss + loss2**2/minloss
-	# return loss1 + loss2
 
 
 def generate_full_grid_torch(dim=10, points_per_dim=2, device='cpu', dtype=torch.float32):

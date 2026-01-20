@@ -1,13 +1,19 @@
 import torch
 
-class Volterra1D:
+
+class Volterratype:
 	def __init__(self, X_grid, s):
 		self.X_grid = X_grid
 		self.s = s
 		self.N_X = X_grid.size(0)
 		self.N_s = s.size(0)
-		self.x_e = X_grid.view(-1, 1).expand(-1, self.N_s)
-		self.s_e = s.view(1, -1).expand(self.N_X, -1)
+
+
+class Volterra1D(Volterratype):
+	def __init__(self, X_grid, s):
+		super().__init__(X_grid, s)
+		self.x_e = self.X_grid.view(-1, 1).expand(-1, self.N_s)
+		self.s_e = self.s.view(1, -1).expand(self.N_X, -1)
 
 		def K(x, s):
 			return -torch.sin(torch.pi * (x - s))
@@ -32,12 +38,9 @@ class Volterra1D:
 		return loss
 
 
-class Volterra2DNR:
+class Volterra2DNR(Volterratype):
 	def __init__(self, X_grid, s):
-		self.X_grid = X_grid
-		self.s = s
-		self.N_X = X_grid.size(0)
-		self.N_s = s.size(0)
+		super().__init__(X_grid, s)
 		X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
 		self.x = X_e[:, :, 0]
 		self.t = X_e[:, :, 1]
@@ -77,6 +80,72 @@ class Volterra2DNR:
 		return loss
 
 
+class Volterra10D(Volterratype):
+	def __init__(self, X_grid, s):
+		super().__init__(X_grid, s)
+		self.X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
+		self.s_e = s.unsqueeze(0).expand(self.N_X, -1, -1)
+
+		def f(X):
+			t = X[:, 0]
+			x123 = X[:, 1] + X[:, 2] + X[:, 3]
+			x456 = X[:, 4] + X[:, 5] + X[:, 6]
+			x789 = X[:, 7] + X[:, 8] + X[:, 9]
+			return (x123 * torch.sin(x456) * torch.cos(x789) + 3 * t * torch.sin(x456) * torch.cos(
+				x789) + 3 * t * x123 * torch.cos(x456) * torch.cos(x789) - 3 * t * x123 * torch.sin(x456) * torch.sin(
+				x789)).view(-1, )
+		self.f = f
+
+		def solution(X):
+			return (X[:, 0] * (X[:, 1] + X[:, 2] + X[:, 3]) * torch.sin(X[:, 4] + X[:, 5] + X[:, 6]) * torch.cos(
+				X[:, 7] + X[:, 8] + X[:, 9])).view(-1, )
+		self.solution = solution
+
+		def integral(X):
+			def cos(x):
+				return torch.cos(x)
+			def sin(x):
+				return torch.sin(x)
+
+			t, x1, x2, x3, x4, x5, x6, x7, x8, x9 = X[:, 0], X[:, 1], X[:, 2], X[:, 3], X[:, 4], X[:, 5], X[:, 6], X[
+				:, 7], X[:, 8], X[:, 9]
+			I1 = t ** 3 / 3
+			I2 = x1 * x2 * x3 * (x1 + x2 + x3) / 2
+			I3 = cos(x4 + x5 + x6) - cos(x4 + x5) - cos(x4 + x6) - cos(x5 + x6) + cos(x4) + cos(x5) + cos(x6) - 1
+			I4 = -sin(x7 + x8 + x9) + sin(x7 + x8) + sin(x7 + x9) + sin(x8 + x9) - sin(x7) - sin(x8) - sin(x9)
+			return (I1 * I2 * I3 * I4).view(-1, )
+		self.integral = integral
+
+		def g(X):
+			return (self.f(X) - self.solution(X) - self.integral(X)).view(-1, )
+		self.g = g
+		"""
+        Notice that you don't have to redefine self.g(x) if you redefine self.f(x), self.solution(x) or self.g(x).
+        """
+
+	def in_mean(self, u):
+		X_s = self.X_e * self.s_e  # torch.Size([N_X, N_s, dim])
+		Imean = torch.mean(u(X_s.flatten(0, 1)).view(self.N_X, self.N_s, ), dim=1).view(-1, )
+		product = (self.X_grid[:, 0] * torch.prod(self.X_grid, dim=-1)).view(-1, )
+		Int = u(self.X_grid).view(-1, ) + self.g(self.X_grid) + product * Imean - self.f(self.X_grid)
+		return Int.view(-1, )
+
+	def loss_ph(self, u):
+		loss = torch.mean(self.in_mean(u) ** 2)
+		return loss
+
+	def loss_bc(self, u):
+		x = self.X_grid.detach().requires_grad_(True)
+		gradients = torch.autograd.grad(u(x).sum(), x, create_graph=True)[0]
+		sum_of_partials = torch.sum(gradients, dim=1).view(-1, )
+		loss = torch.mean((sum_of_partials - self.f(x).view(-1, )) ** 2)
+		return loss
+
+	def loss_fn(self, model):
+		loss1 = self.loss_ph(model)
+		loss2 = self.loss_bc(model)
+		minloss = torch.min(loss1, loss2) + 1e-16
+		return loss1 ** 2 / minloss + loss2 ** 2 / minloss
 
 
 if __name__ == "__main__":
