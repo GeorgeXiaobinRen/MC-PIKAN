@@ -149,20 +149,25 @@ class Volterra10D(Volterratype):
 			return (self.f(X) - self.solution(X) - self.integral(X)).view(-1, )
 		self.g = g
 
-	def loss_fn(self, u):
-		X_s = self.X_e * self.s_e  # torch.Size([N_X, N_s, dim])
-		Imean = torch.mean(u(X_s.flatten(0, 1)).view(self.N_X, self.N_s, ), dim=1).view(-1, )
-		product = (self.X_grid[:, 0] * torch.prod(self.X_grid, dim=-1)).view(-1, )
-		Int = u(self.X_grid).view(-1, ) + self.g(self.X_grid) + product * Imean - self.f(self.X_grid)
-		loss_ph = torch.mean(Int.view(-1, ) ** 2)
+	def loss_fn(self, u, mode = "adaptive"):
+		X_dot_s = self.X_e * self.s_e  # torch.Size([N_X, N_s, dim])
+		I = self.s_e[:, :, 0] * self.X_e[:, :, 0] * torch.prod(self.X_e[:, :, :], dim=-1) * (u(X_dot_s.flatten(0, 1)).view(self.N_X, self.N_s, ))  # torch.Size([N_X, N_s])
+		in_mean = self.f(self.X_grid) - u(self.X_grid).view(-1, ) - self.g(self.X_grid) - torch.mean(I, dim=1)
+		loss_ph = torch.mean(in_mean ** 2)
 
-		x_withgrid = self.X_grid.detach().requires_grad_(True)
-		gradients = torch.autograd.grad(u(x_withgrid).sum(), x_withgrid, create_graph=True)[0]
+		x_withgrad = self.X_grid.detach().requires_grad_(True)
+		gradients = torch.autograd.grad(u(x_withgrad).sum(), x_withgrad, create_graph=True)[0]
 		sum_of_partials = torch.sum(gradients, dim=1).view(-1, )
 		loss_bc = torch.mean((sum_of_partials - self.f(self.X_grid).view(-1, )) ** 2)
 
-		minloss = torch.min(loss_ph, loss_bc) + 1e-16
-		return loss_ph ** 2 / minloss + loss_bc ** 2 / minloss
+		if mode == "adaptive":
+			minloss = torch.min(loss_ph, loss_bc) + 1e-16
+			return loss_ph ** 2 / minloss + loss_bc ** 2 / minloss
+		else:
+			return loss_ph + loss_bc
+		"""
+		The functionality for selecting weights in the loss function should be improved in the future
+		"""
 
 
 if __name__ == "__main__":
