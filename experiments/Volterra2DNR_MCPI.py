@@ -1,6 +1,5 @@
 import time
 import matplotlib.pyplot as plt
-import torch
 from random_seed import setup_seed
 from torchinfo import summary
 from problems.Volterra import Volterra2DNR
