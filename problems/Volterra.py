@@ -34,6 +34,7 @@ class Volterra1D(Volterratype):
         f (callable, optional): Free term function, uses default if None
         solution (callable, optional): Exact solution function, uses default if None
     """
+
 	def __init__(self, X_grid, s, K=None, f=None, solution=None):
 		super().__init__(X_grid, s)
 		self.x_e = self.X_grid.view(-1, 1).expand(-1, self.N_s)
@@ -95,6 +96,7 @@ class Volterra2DNR(Volterratype):
         f (callable, optional): Free term function, uses default if None
         solution (callable, optional): Exact solution function, uses default if None
     """
+
 	def __init__(self, X_grid, s, f=None, solution=None):
 		super().__init__(X_grid, s)
 		X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
@@ -137,8 +139,9 @@ class Volterra2DNR(Volterratype):
 
 
 class Volterra10D(Volterratype):
-	def __init__(self, X_grid, s, f=None, solution=None, integral=None):
+	def __init__(self, X_grid, X_boundary, s, f=None, solution=None, integral=None):
 		super().__init__(X_grid, s)
+		self.X_boundary = X_boundary
 		self.X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
 		self.s_e = s.unsqueeze(0).expand(self.N_X, -1, -1)
 		self.f = f if f is not None else Volterra10D_f
@@ -155,10 +158,10 @@ class Volterra10D(Volterratype):
 		in_mean = self.f(self.X_grid) - u(self.X_grid).view(-1, ) - self.g(self.X_grid) - torch.mean(I, dim=1)
 		loss_ph = torch.mean(in_mean ** 2)
 
-		x_withgrad = self.X_grid.detach().requires_grad_(True)
+		x_withgrad = self.X_boundary.detach().requires_grad_(True)
 		gradients = torch.autograd.grad(u(x_withgrad).sum(), x_withgrad, create_graph=True)[0]
 		sum_of_partials = torch.sum(gradients, dim=1).view(-1, )
-		loss_bc = torch.mean((sum_of_partials - self.f(self.X_grid).view(-1, )) ** 2)
+		loss_bc = torch.mean((sum_of_partials - self.f(self.X_boundary).view(-1, )) ** 2)
 
 		if mode == "adaptive":
 			minloss = torch.min(loss_ph, loss_bc) + 1e-16
@@ -171,31 +174,30 @@ class Volterra10D(Volterratype):
 
 
 if __name__ == "__main__":
-	x = torch.linspace(0, 1, 30)
-	X = torch.cartesian_prod(x, x)
-	s = torch.rand(10000, 2)
-
-	question = Volterra2DNR(X, s)
-
-	# def f(X):
-	# 	x, t = X[:, 0], X[:, 1]
-	# 	return -17*t**3/200 + 29*t**2*x/20 + 3*t*x**2/2 - t*x/4 + torch.e*t*x/5 + torch.exp(torch.tensor(2, dtype=X.dtype, device=X.device))/200 + 497/500
+	# x = torch.linspace(0, 1, 30)
+	# X = torch.cartesian_prod(x, x)
+	# s = torch.rand(10000, 2)
 	#
-	# def solution(X):
-	# 	return torch.ones_like(X[:, 0])
+	# question = Volterra2DNR(X, s)
+	#
+	# result = question.loss_fn(question.solution)
+	# print(f"F函数返回值: {result}")
+	#
+	# X = torch.linspace(0, 1, 100)
+	# s = torch.rand(500)
+	#
+	# question = Volterra1D(X, s)
 	#
 	#
-	# question.solution = solution
-	# question.f = f
+	# result = question.loss_fn(question.solution)
+	# print(f"F函数返回值: {result}")
 
-	result = question.loss_fn(question.solution)
-	print(f"F函数返回值: {result}")
+	from utils import *
+	device = torch.device("cuda:0")
+	x_b = sample_boundary_points(dim=10, num_samples_per_boundary=100, device=device,
+									 bound=True).requires_grad_(True)  # torch.Size([20000, 10])
+	x_i = torch.rand(1000, 10, device=device)  # torch.Size([10000, 10])
+	s = torch.rand(10, 10, device=device)
+	question = Volterra10D(x_i, x_b, s)
 
-	X = torch.linspace(0, 1, 100)
-	s = torch.rand(500)
-
-	question = Volterra1D(X, s)
-
-
-	result = question.loss_fn(question.solution)
-	print(f"F函数返回值: {result}")
+	print(question.loss_fn(torch.rand(1000, 10, device=device)))
