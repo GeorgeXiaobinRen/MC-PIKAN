@@ -149,29 +149,20 @@ class Volterra10D(Volterratype):
 			return (self.f(X) - self.solution(X) - self.integral(X)).view(-1, )
 		self.g = g
 
-	def in_mean(self, u):
+	def loss_fn(self, u):
 		X_s = self.X_e * self.s_e  # torch.Size([N_X, N_s, dim])
 		Imean = torch.mean(u(X_s.flatten(0, 1)).view(self.N_X, self.N_s, ), dim=1).view(-1, )
 		product = (self.X_grid[:, 0] * torch.prod(self.X_grid, dim=-1)).view(-1, )
 		Int = u(self.X_grid).view(-1, ) + self.g(self.X_grid) + product * Imean - self.f(self.X_grid)
-		return Int.view(-1, )
+		loss_ph = torch.mean(Int.view(-1, ) ** 2)
 
-	def loss_ph(self, u):
-		loss = torch.mean(self.in_mean(u) ** 2)
-		return loss
-
-	def loss_bc(self, u):
-		x = self.X_grid.detach().requires_grad_(True)
-		gradients = torch.autograd.grad(u(x).sum(), x, create_graph=True)[0]
+		x_withgrid = self.X_grid.detach().requires_grad_(True)
+		gradients = torch.autograd.grad(u(x_withgrid).sum(), x_withgrid, create_graph=True)[0]
 		sum_of_partials = torch.sum(gradients, dim=1).view(-1, )
-		loss = torch.mean((sum_of_partials - self.f(x).view(-1, )) ** 2)
-		return loss
+		loss_bc = torch.mean((sum_of_partials - self.f(self.X_grid).view(-1, )) ** 2)
 
-	def loss_fn(self, model):
-		loss1 = self.loss_ph(model)
-		loss2 = self.loss_bc(model)
-		minloss = torch.min(loss1, loss2) + 1e-16
-		return loss1 ** 2 / minloss + loss2 ** 2 / minloss
+		minloss = torch.min(loss_ph, loss_bc) + 1e-16
+		return loss_ph ** 2 / minloss + loss_bc ** 2 / minloss
 
 
 if __name__ == "__main__":
