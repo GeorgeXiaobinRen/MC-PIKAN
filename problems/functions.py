@@ -1,6 +1,7 @@
 import torch
 
 
+# Volterra1D functions
 def Volterra1D_solution(x):
 	return torch.sin(torch.pi * x)
 
@@ -13,6 +14,7 @@ def Volterra1D_K(x, s):
 	return -torch.sin(torch.pi * (x - s))
 
 
+# Volterra2DNR functions
 def Volterra2DNR_f(X):
 	x, t = X[:, 0], X[:, 1]
 	u_xt = x ** 2 + 2 * x * t
@@ -28,3 +30,35 @@ def Volterra2DNR_f(X):
 
 def Volterra2DNR_solution(X):
 	return X[:, 0] ** 2 + 2 * X[:, 0] * X[:, 1]
+
+
+# Volterra10D functions
+def Volterra10D_f(X):
+	t = X[:, 0]
+	x123 = X[:, 1] + X[:, 2] + X[:, 3]
+	x456 = X[:, 4] + X[:, 5] + X[:, 6]
+	x789 = X[:, 7] + X[:, 8] + X[:, 9]
+	return (x123 * torch.sin(x456) * torch.cos(x789) + 3 * t * torch.sin(x456) * torch.cos(
+		x789) + 3 * t * x123 * torch.cos(x456) * torch.cos(x789) - 3 * t * x123 * torch.sin(x456) * torch.sin(
+		x789)).view(-1, )
+
+
+def Volterra10D_solution(X):
+	return (X[:, 0] * (X[:, 1] + X[:, 2] + X[:, 3]) * torch.sin(X[:, 4] + X[:, 5] + X[:, 6]) * torch.cos(
+		X[:, 7] + X[:, 8] + X[:, 9])).view(-1, )
+
+
+def Volterra10D_integral(X):
+	def cos(x):
+		return torch.cos(x)
+
+	def sin(x):
+		return torch.sin(x)
+
+	t, x1, x2, x3, x4, x5, x6, x7, x8, x9 = X[:, 0], X[:, 1], X[:, 2], X[:, 3], X[:, 4], X[:, 5], X[:, 6], X[
+		:, 7], X[:, 8], X[:, 9]
+	I1 = t ** 3 / 3
+	I2 = x1 * x2 * x3 * (x1 + x2 + x3) / 2
+	I3 = cos(x4 + x5 + x6) - cos(x4 + x5) - cos(x4 + x6) - cos(x5 + x6) + cos(x4) + cos(x5) + cos(x6) - 1
+	I4 = -sin(x7 + x8 + x9) + sin(x7 + x8) + sin(x7 + x9) + sin(x8 + x9) - sin(x7) - sin(x8) - sin(x9)
+	return (I1 * I2 * I3 * I4).view(-1, )

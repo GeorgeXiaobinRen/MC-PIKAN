@@ -43,12 +43,27 @@ class Volterra1D(Volterratype):
 		self.f = f if f is not None else Volterra1D_f
 		self.solution = solution if solution is not None else Volterra1D_solution
 
-	def loss_fn(self, model):
+	def loss_fn(self, u):
+		"""
+        Compute the loss function for the 1D Volterra equation.
+
+        The loss function evaluates how well the neural network model approximates
+        the solution to the Volterra integral equation. It calculates the mean squared
+        residual between the left and right sides of the discretized integral equation
+
+        The integral term is approximated using Monte Carlo sampling.
+
+        Args:
+            u (callable): Approximation of the solution function u(x)
+
+        Returns:
+            torch.Tensor: Scalar value representing the mean squared residual loss
+        """
 		xs = self.x_e * self.s_e
 		k_vals = self.K(self.x_e, xs)  # (N_x, N_s)
-		u_vals = model(xs.view(-1, 1)).view(self.N_X, self.N_s)
+		u_vals = u(xs.view(-1, 1)).view(self.N_X, self.N_s)
 		product = self.x_e * k_vals * u_vals  # (N_x, N_s)
-		inner_mean = model(self.X_grid.view(-1, 1)).view(-1, ) - self.f(self.X_grid) - torch.mean(product, dim=1)  # (N_x,)
+		inner_mean = u(self.X_grid.view(-1, 1)).view(-1, ) - self.f(self.X_grid) - torch.mean(product, dim=1)  # (N_x,)
 		loss = torch.mean(inner_mean ** 2)
 		return loss
 
@@ -101,7 +116,7 @@ class Volterra2DNR(Volterratype):
         with different kernel functions and variable transformations.
         
         Args:
-            u (callable): Neural network approximation of the solution function
+            u (callable): Approximation of the solution function
             
         Returns:
             torch.Tensor: Scalar value representing the mean squared residual
@@ -122,47 +137,17 @@ class Volterra2DNR(Volterratype):
 
 
 class Volterra10D(Volterratype):
-	def __init__(self, X_grid, s):
+	def __init__(self, X_grid, s, f=None, solution=None, integral=None):
 		super().__init__(X_grid, s)
 		self.X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
 		self.s_e = s.unsqueeze(0).expand(self.N_X, -1, -1)
-
-		def f(X):
-			t = X[:, 0]
-			x123 = X[:, 1] + X[:, 2] + X[:, 3]
-			x456 = X[:, 4] + X[:, 5] + X[:, 6]
-			x789 = X[:, 7] + X[:, 8] + X[:, 9]
-			return (x123 * torch.sin(x456) * torch.cos(x789) + 3 * t * torch.sin(x456) * torch.cos(
-				x789) + 3 * t * x123 * torch.cos(x456) * torch.cos(x789) - 3 * t * x123 * torch.sin(x456) * torch.sin(
-				x789)).view(-1, )
-		self.f = f
-
-		def solution(X):
-			return (X[:, 0] * (X[:, 1] + X[:, 2] + X[:, 3]) * torch.sin(X[:, 4] + X[:, 5] + X[:, 6]) * torch.cos(
-				X[:, 7] + X[:, 8] + X[:, 9])).view(-1, )
-		self.solution = solution
-
-		def integral(X):
-			def cos(x):
-				return torch.cos(x)
-			def sin(x):
-				return torch.sin(x)
-
-			t, x1, x2, x3, x4, x5, x6, x7, x8, x9 = X[:, 0], X[:, 1], X[:, 2], X[:, 3], X[:, 4], X[:, 5], X[:, 6], X[
-				:, 7], X[:, 8], X[:, 9]
-			I1 = t ** 3 / 3
-			I2 = x1 * x2 * x3 * (x1 + x2 + x3) / 2
-			I3 = cos(x4 + x5 + x6) - cos(x4 + x5) - cos(x4 + x6) - cos(x5 + x6) + cos(x4) + cos(x5) + cos(x6) - 1
-			I4 = -sin(x7 + x8 + x9) + sin(x7 + x8) + sin(x7 + x9) + sin(x8 + x9) - sin(x7) - sin(x8) - sin(x9)
-			return (I1 * I2 * I3 * I4).view(-1, )
-		self.integral = integral
+		self.f = f if f is not None else Volterra10D_f
+		self.solution = solution if solution is not None else Volterra10D_solution
+		self.integral = integral if integral is not None else Volterra10D_integral
 
 		def g(X):
 			return (self.f(X) - self.solution(X) - self.integral(X)).view(-1, )
 		self.g = g
-		"""
-        Notice that you don't have to redefine self.g(x) if you redefine self.f(x), self.solution(x) or self.g(x).
-        """
 
 	def in_mean(self, u):
 		X_s = self.X_e * self.s_e  # torch.Size([N_X, N_s, dim])
