@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import KANLayers as kal
+import KANlayers as kal
 
 class CPIKANModel(nn.Module):
 	def __init__(self, input_dim=1, output_dim=1, num_layers=3, hidden_dim=10, degree=4, dtype=torch.float32):

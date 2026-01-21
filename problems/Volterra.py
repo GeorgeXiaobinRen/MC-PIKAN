@@ -1,4 +1,4 @@
-import torch
+from problems.functions import *
 
 
 class Volterratype:
@@ -9,19 +9,31 @@ class Volterratype:
 		self.N_s = s.size(0)
 
 
-def Volterra1D_solution(x):
-	return torch.sin(torch.pi * x)
-
-
-def Volterra1D_f(x):
-	return (1 + 1 / (2 * torch.pi)) * torch.sin(torch.pi * x) - x * torch.cos(torch.pi * x) / 2
-
-
-def Volterra1D_K(x, s):
-	return -torch.sin(torch.pi * (x - s))
-
-
 class Volterra1D(Volterratype):
+	"""
+    One-dimensional Volterra integral equation solver class
+
+    Implements numerical solution of the first kind Volterra integral equation:
+    u(x) = f(x) + ∫₀ˣ K(x,ξ)u(ξ)dξ, where 0 ≤ x ≤ 1
+    ($$u(x)=f(x)+\int_0^xK(x,\xi)u(\xi)\mathrm{d}\xi,\quad0\leq x\leq1.$$)
+
+    This class handles one-dimensional Volterra integral equations with kernel function K(x,s),
+    providing loss function calculation and replaceable core function components.
+
+    Attributes:
+        x_e (torch.Tensor): Extended grid point tensor, shape (N_X, N_s)
+        s_e (torch.Tensor): Extended integration variable tensor, shape (N_X, N_s)
+        K (callable): Kernel function K(x,s), can be customized externally
+        f (callable): Free term function f(x), can be customized externally
+        solution (callable): Exact solution function, can be customized externally
+
+    Args:
+        X_grid (torch.Tensor): Grid points of the computational domain
+        s (torch.Tensor): Integration variable sampling points
+        K (callable, optional): Kernel function, uses default if None
+        f (callable, optional): Free term function, uses default if None
+        solution (callable, optional): Exact solution function, uses default if None
+    """
 	def __init__(self, X_grid, s, K=None, f=None, solution=None):
 		super().__init__(X_grid, s)
 		self.x_e = self.X_grid.view(-1, 1).expand(-1, self.N_s)
