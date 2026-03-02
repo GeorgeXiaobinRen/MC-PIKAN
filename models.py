@@ -16,9 +16,8 @@ class CPIKANModel(nn.Module):
 		self.detailed_name = "cPIKAN with explicit expressions"
 
 	def forward(self, x):
-		for i in range(self.num_layers-1):
-			x = self.lys[i](x)
-		x = self.lys[-1](x)
+		for ly in self.lys:
+			x = ly(x)
 		return x
 
 
@@ -64,3 +63,6 @@ def print_modelsize(model):
 		print(model.activation)
 	except AttributeError:
 		pass
+	
+	total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+	print(f"Total trainable parameters: {total_params}")

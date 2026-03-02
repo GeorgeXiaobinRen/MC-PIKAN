@@ -1,4 +1,7 @@
-import time
+import time, os, sys
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from utils import *
 from random_seed import setup_seed
 from problems.Volterra import Volterra10D
@@ -16,7 +19,7 @@ if __name__ == "__main__":
 	n_ksi = 500
 	n_in = 4000
 	n_bound = 50
-	epoches = 2000
+	epoches = 5000
 	if m == 0:
 		model = CPIKANModel(input_dim=10, hidden_dim=10, dtype=dtype).to(device)
 	elif m == 1:
@@ -65,7 +68,6 @@ if __name__ == "__main__":
 		# 绘制真实解
 		ax = axes[i, 0]
 		contour = ax.contourf(X, Y, solution_values, levels=20, cmap='hot')
-		# 添加等高线（黑色细线）
 		ax.contour(X, Y, solution_values, levels=20, colors='k', linewidths=0.5)
 		cbar = fig.colorbar(contour, ax=ax)
 		ax.axis('scaled')

@@ -167,8 +167,11 @@ class Volterra10D(Volterratype):
 		# The functionality for selecting weights in the loss function should be improved in the future
 		# """
 		if mode == "adaptive":
-			minloss = torch.min(loss_ph, loss_bc) + 1e-16
-			return loss_ph ** 2 / minloss + loss_bc ** 2 / minloss
+			# Use a more stable adaptive weighting (e.g., balancing based on log scale or normalized values)
+			# Here we use a simpler but more robust normalization
+			w_ph = loss_ph.detach() / (loss_ph.detach() + loss_bc.detach() + 1e-16)
+			w_bc = loss_bc.detach() / (loss_ph.detach() + loss_bc.detach() + 1e-16)
+			return (1.0 - w_ph) * loss_ph + (1.0 - w_bc) * loss_bc
 		else:
 			return loss_ph + loss_bc
 

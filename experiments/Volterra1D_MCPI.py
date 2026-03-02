@@ -1,4 +1,7 @@
-import time
+import time, os, sys
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
 from torchinfo import summary
