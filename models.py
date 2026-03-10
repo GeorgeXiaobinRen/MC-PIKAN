@@ -42,10 +42,10 @@ class PINNModel(nn.Module):
 		self.num_layers = num_layers
 		self.lys = nn.ModuleList()
 		self.lys.append(nn.Linear(input_dim, hidden_dim, dtype=dtype))  # input-hidden
-		if num_layers >= 2:
+		if num_layers >= 3:
 			for i in range(1, num_layers-1):
 				self.lys.append(nn.Linear(hidden_dim, hidden_dim, dtype=dtype)) # hidden-hidden
-		self.lys.append(nn.Linear(hidden_dim, output_dim, dtype=dtype, bias=False))  # hidden-output
+		self.lys.append(nn.Linear(hidden_dim, output_dim, dtype=dtype))  # hidden-output
 		self.activation = nn.Tanh()
 		self.name = "PINNs"
 
@@ -66,3 +66,8 @@ def print_modelsize(model):
 	
 	total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 	print(f"Total trainable parameters: {total_params}")
+
+
+if __name__ == "__main__":
+	model = PINNModel(input_dim=1, output_dim=1, num_layers=3, hidden_dim=10)
+	print_modelsize(model)
