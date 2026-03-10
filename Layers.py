@@ -3,12 +3,17 @@ import torch.nn as nn
 import math
 
 
+
 # ChebyKAN layers with explicit expressions
 class ChebyKANLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, degree, dtype):
+    __constants__ = ["input_dim", "output_dim", "degree"]
+    in_features: int
+    out_features: int
+    degree: int
+    def __init__(self, input_dim: int, output_dim: int, degree: int, dtype):
         super(ChebyKANLayer, self).__init__()
         self.inputdim = input_dim
-        self.outdim = output_dim
+        self.outputdim = output_dim
         self.degree = degree
         self.dtype = dtype
         self.weight = nn.Parameter(torch.empty(input_dim, output_dim, degree + 1, dtype=dtype))
@@ -32,8 +37,15 @@ class ChebyKANLayer(nn.Module):
         y = torch.einsum(
             "bid,iod->bo", x, self.weight
         )  # shape = (batch_size, outdim)
-        y = y.view(-1, self.outdim)
+        y = y.view(-1, self.outputdim)
         return y
+
+    def extra_repr(self) -> str:
+        """
+        Return the extra representation of the module.
+        """
+        return f"in_features={self.inputdim}, out_features={self.outputdim}, degree={self.degree}"
+
 
 
 # Cheby KAN layers with unoptimized expressions
