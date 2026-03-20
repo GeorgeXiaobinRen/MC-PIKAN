@@ -1,5 +1,4 @@
 import time, os, sys
-# Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import matplotlib.pyplot as plt
@@ -11,24 +10,25 @@ from models import *
 
 if __name__ == "__main__":
 	plt.rcParams['axes.unicode_minus'] = False
-	setup_seed(233) # set up the random seed
+	setup_seed(13)
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	dtype = torch.float32
-	n_s = 2000
-	n_e = 10000
+	n_s = 40
+	n_e = 2000
 
-	x = torch.linspace(0, 1, 80, device=device, dtype=dtype)
+	x = torch.linspace(0, 1, 50, device=device, dtype=dtype)
+
 	s = torch.rand(n_s, device=device, dtype=dtype)
 	question = Volterra1D(X_grid=x, s=s)
-	result = question.loss_fn(question.solution)
-	print(f"loss function return value: {result}")
+	# result = question.loss_fn(question.solution)
+	# print(f"loss function return value: {result}")
 
 	# build model
 	m = 1
 	if m==0:
-		model = PINNModel(num_layers=2, hidden_dim=6, dtype=dtype).to(device)
+		model = PINNModel(num_layers=3, hidden_dim=20, dtype=dtype).to(device)
 	elif m==1:
-		model = CPIKANModel(num_layers=2, hidden_dim=3, degree=3, dtype=dtype).to(device)
+		model = CPIKANModel(num_layers=3, hidden_dim=10, degree=3, dtype=dtype).to(device)
 	else:
 		raise ValueError("Invalid value: m should be 0 or 1.")
 	print_modelsize(model)
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
 	# train model
 	time0 = time.time()
-	train(model, question, lr=0.1, max_epochs=n_e, dynamic_lr=True)
+	train(model, question, lr=0.001, max_epochs=n_e, dynamic_lr=False)
 	time1 = time.time()
 	print("Training time: " + str(time1 - time0) + "s")
 	# prediction result
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 	plt.rcParams['legend.fontsize'] = 15
 
-	# left subplot: prediction vs ground truth
+	# left subplot
 	ax1.plot(x_pred.detach().cpu(), u_pred.detach().cpu(), label="Exact solution", ls='--')
 	ax1.plot(x_pred.detach().cpu(), u_solution.detach().cpu(), label="Predicted solution")
 	ax1.set_xlabel("$x$", fontsize=15)
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 	ax1.legend()
 	ax1.grid()
 
-	# right subplot: residual (log scale)
+	# right subplot
 	ax2.plot(x_pred.detach().cpu(), residual.detach().cpu(), label="Absolute error", color="red")
 	ax2.set_xlabel("$x$", fontsize=15)
 	ax2.set_ylabel("Absolute error (log scale)", fontsize=15)
@@ -69,7 +69,6 @@ if __name__ == "__main__":
 	ax2.legend()
 	ax2.grid()
 
-	# add statistical information of residual
 	relative_loss = torch.sqrt((residual**2).mean())/torch.sqrt((u_solution**2).mean())
 	l2_loss = torch.sqrt((residual**2).mean())
 	print(f"Relative loss: {relative_loss.item()}")
@@ -86,6 +85,6 @@ if __name__ == "__main__":
 	summary(model, input_size=(1, 1), verbose=2, dtypes=[dtype, dtype])
 
 	# display image
-	plt.tight_layout() # automatically adjust subplot spacing
+	plt.tight_layout()
 	plt.savefig(f"Volterra1D_MC-{model.name}.png")
 	plt.show()

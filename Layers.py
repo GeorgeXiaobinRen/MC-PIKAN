@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import math
 
 
 
@@ -21,8 +20,7 @@ class ChebyKANLayer(nn.Module):
         self.register_buffer("arange", torch.arange(0, degree + 1, 1, dtype=dtype))
 
     def forward(self, x):
-        # Since Chebyshev polynomial is defined in [-1, 1]
-        # We need to normalize x to [-1, 1] using tanh
+        # Normalize x to [-1, 1] using tanh
         x = torch.tanh(x)
         # View and repeat input degree + 1 times
         x = x.view((-1, self.inputdim, 1)).expand(
@@ -31,7 +29,6 @@ class ChebyKANLayer(nn.Module):
         x = x.acos()
         # Multiply by arange [0 .. degree]
         x *= self.arange
-        # Apply cos
         x = x.cos()
         # Compute the Chebyshev interpolation
         y = torch.einsum(
@@ -65,8 +62,7 @@ class unoptd_ChebyKANLayer(nn.Module):
 
     def forward(self, x):
         x = torch.reshape(x, (-1, self.inputdim))  # shape = (batch_size, inputdim)
-        # Since Chebyshev polynomial is defined in [-1, 1]
-        # We need to normalize x to [-1, 1] using tanh
+        # Normalize x to [-1, 1] using tanh
         x = torch.tanh(x)
         # Initialize Chebyshev polynomial tensors
         cheby = torch.ones(x.shape[0], self.inputdim, self.degree + 1, device=x.device, dtype=x.dtype)
