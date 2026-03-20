@@ -1,7 +1,8 @@
-import torch, time, os
+import torch, os
+import numpy as np
 from tqdm import tqdm
 
-def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5, save_path="results/best_model.pth"):
+def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5, save_path="results/best_model.pth", loss_history_path="results/loss_history.npy"):
 	print("Start training...")
 	print(f"Max Epochs: {max_epochs}, Learning Rate: {lr}, Epsilon: {epsilon}, Optimizer: {opt_method}")
 
@@ -18,6 +19,7 @@ def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200
 	best_loss = float('inf')
 	# Ensure results directory exists
 	os.makedirs(os.path.dirname(save_path), exist_ok=True)
+	loss_history = []
 
 	pbar = tqdm(range(max_epochs), desc="Training", unit="epoch")
 	for epoch in pbar:
@@ -27,6 +29,7 @@ def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200
 		optimizer.step()
 
 		loss_val = loss.item()
+		loss_history.append(loss_val)
 		
 		# Step scheduler if enabled
 		if scheduler is not None:
@@ -48,3 +51,9 @@ def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200
 			break
 	
 	print(f"Training finished. Best loss: {best_loss:.2e}. Model saved to {save_path}")
+
+	# Save loss history
+	if loss_history_path:
+		os.makedirs(os.path.dirname(loss_history_path), exist_ok=True)
+		np.save(loss_history_path, np.array(loss_history))
+		print(f"Loss history saved to {loss_history_path}")

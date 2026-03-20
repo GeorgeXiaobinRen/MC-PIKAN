@@ -24,7 +24,7 @@ if __name__ == "__main__":
 	# print(f"loss function return value: {result}")
 
 	# build model
-	m = 1
+	m = 0
 	if m==0:
 		model = PINNModel(num_layers=3, hidden_dim=20, dtype=dtype).to(device)
 	elif m==1:
