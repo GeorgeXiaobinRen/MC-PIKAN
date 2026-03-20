@@ -29,21 +29,21 @@ if __name__ == "__main__":
         "xtick.major.width": 1.0,
         "ytick.major.width": 1.0,
     })
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(7, 4))
 
     ax.set_yscale("log")
     ax.set_xlabel("Epoch")
-    ax.set_ylabel("Relative $L^2$ Loss")
+    ax.set_ylabel("Loss")
     ax.set_title("Training Loss Curve")
-    ax.yaxis.grid(True, linestyle="--", linewidth=0.8, alpha=0.7, color="gray")
+    ax.yaxis.grid(True, linestyle="--", linewidth=0.5, alpha=0.7, color="gray")
     sns.despine()
-    plot_loss_history(ax, "results/npy/1DPINNs[3,20][50,40]loss_history.npy", color_index=0, label="PINNs [3,20]")
-    plot_loss_history(ax, "results/npy/1DPIKAN[3,10,3][50,40]loss_history.npy", color_index=1, label="PIKAN [3,10,3]")
+    plot_loss_history(ax, r"E:\PythonProjectsByYear\Year2025\MC-PIKAN_Official\results\data\1DPINNs[3,20][50,40]loss_history.npy", color_index=0, label="PINNs [3,20]")
+    plot_loss_history(ax, r"E:\PythonProjectsByYear\Year2025\MC-PIKAN_Official\results\data\1DPIKAN[3,10,3][50,40]loss_history.npy", color_index=1, label="PIKAN [3,10,3]")
     ax.legend(frameon=True, fancybox=False, edgecolor="black", fontsize=12)
     fig.tight_layout()
     plt.show()
-    fig.savefig("results/1D_loss_history.eps")
-    fig.savefig("results/1D_loss_history.svg")
-    fig.savefig("results/1D_loss_history.pdf")
+    fig.savefig(r"E:\PythonProjectsByYear\Year2025\MC-PIKAN_Official\results\1D_loss_history.eps")
+    fig.savefig(r"E:\PythonProjectsByYear\Year2025\MC-PIKAN_Official\results\1D_loss_history.svg")
+    fig.savefig(r"E:\PythonProjectsByYear\Year2025\MC-PIKAN_Official\results\1D_loss_history.pdf")
     
 
