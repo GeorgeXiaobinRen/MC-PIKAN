@@ -1,5 +1,4 @@
-import time, os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import time
 
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
@@ -25,10 +24,16 @@ if __name__ == "__main__":
 
 	# build model
 	m = 0
+	num_layers = 3
+	hidden_dim = 10
+	degree = 3
 	if m==0:
-		model = PINNModel(num_layers=3, hidden_dim=20, dtype=dtype).to(device)
+		hidden_dim *= 2
+		model = PINNModel(num_layers=num_layers, hidden_dim=hidden_dim, dtype=dtype).to(device)
+		model_size=f"[{str(num_layers)}, {str(hidden_dim)}]"
 	elif m==1:
-		model = CPIKANModel(num_layers=3, hidden_dim=10, degree=3, dtype=dtype).to(device)
+		model = CPIKANModel(num_layers=num_layers, hidden_dim=hidden_dim, degree=degree, dtype=dtype).to(device)
+		model_size = f"[{str(num_layers)}, {str(hidden_dim)}, {str(degree)}]"
 	else:
 		raise ValueError("Invalid value: m should be 0 or 1.")
 	print_modelsize(model)
@@ -86,5 +91,6 @@ if __name__ == "__main__":
 
 	# display image
 	plt.tight_layout()
-	plt.savefig(f"Volterra1D_MC-{model.name}.png")
+	for format in ["eps", "pdf", "svg"]:
+		plt.savefig(f"results/figure/Volterra1D_MC-{model.name}[{model_size}].{format}")
 	plt.show()
