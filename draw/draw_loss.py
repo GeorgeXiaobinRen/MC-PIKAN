@@ -29,7 +29,7 @@ if __name__ == "__main__":
         "xtick.major.width": 1.0,
         "ytick.major.width": 1.0,
     })
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     ax.set_yscale("log")
     ax.set_xlabel("Epoch")

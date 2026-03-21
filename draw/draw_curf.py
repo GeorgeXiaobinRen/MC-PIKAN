@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def plot_data(ax=None, use_log_scale=False, line_style='-', linewidth=1.5,
+def plot_data(data, use_log_scale=False, line_style='-', linewidth=1.5,
 			   color_index=0, label=None, xlabel="X", ylabel="Y", title="Data1 Curve",
 			   show_markers=False, marker_size=60, marker_style='o'):
 	"""
@@ -29,11 +29,8 @@ def plot_data(ax=None, use_log_scale=False, line_style='-', linewidth=1.5,
 		fig: Figure object (created if ax is None)
 		ax: Axes object
 	"""
-	# Create new figure and axes if not provided
-	create_new_fig = ax is None
-	if create_new_fig:
-		sns.set_theme(style="ticks", context="paper", font_scale=1.4)
-		plt.rcParams.update({
+	sns.set_theme(style="ticks", context="paper", font_scale=1.4)
+	plt.rcParams.update({
 			"font.family": "serif",
 			"font.serif": ["Times New Roman"],
 			"mathtext.fontset": "stix",
@@ -41,11 +38,11 @@ def plot_data(ax=None, use_log_scale=False, line_style='-', linewidth=1.5,
 			"xtick.major.width": 1.0,
 			"ytick.major.width": 1.0,
 		})
-		fig, ax = plt.subplots(figsize=(6, 5))
+	fig, ax = plt.subplots(figsize=(6, 5))
 
 	# Extract data
-	x_data = data1[0, :]
-	y_data = data1[1, :]
+	x_data = data[0, :]
+	y_data = data[1, :]
 
 	# Plot the curve
 	curve_color = sns.color_palette("deep")[color_index]
@@ -74,50 +71,50 @@ def plot_data(ax=None, use_log_scale=False, line_style='-', linewidth=1.5,
 	if label is not None:
 		ax.legend(frameon=True, fancybox=False, edgecolor="black", fontsize=12)
 
-	if create_new_fig:
-		fig.tight_layout()
-		return fig, ax
-	else:
-		return ax
+	return fig, ax
 
 
 if __name__ == "__main__":
-	# data1 = np.array([[1, 2, 3, 4, 5, 6],
-	# 				  [0.0752912387251854, 0.004333922639489174, 0.002688765525817871, 0.003336397232487797,
-	# 				   0.001569639891386032, 0.0017865969566628337]])
+	data1 = np.array([[1, 2, 3, 4, 5, 6],
+					  [0.0752912387251854, 0.004333922639489174, 0.002688765525817871, 0.003336397232487797,
+					   0.001569639891386032, 0.0017865969566628337]])
 
-	# fig, ax = plot_data(
-	# 	use_log_scale=False,
-	# 	line_style='-.',
-	# 	linewidth=1.5,
-	# 	color_index=0,
-	# 	xlabel="$d$",
-	# 	ylabel="$\mathscr{E}_{\\text{rel}}$",
-	# 	title="Degree of Chebyshev Polynomials",
-	# 	show_markers=True,
-	# 	marker_size=60,
-	# 	marker_style='o'
-	# )
-	# plt.show()
-	# for format in ["eps", "svg", "pdf"]:
-	# 	fig.savefig(f"degree_of_chebyshev_polynomials_curve.{format}")
+	fig, ax = plot_data(
+		data1,
+		use_log_scale=False,
+		line_style='-.',
+		linewidth=1.5,
+		color_index=2,
+		xlabel="$d$",
+		ylabel="$\mathscr{E}_{\\text{rel}}$",
+		title="Degree of Chebyshev Polynomials",
+		show_markers=True,
+		marker_size=60,
+		marker_style='o'
+	)
+	plt.show()
+	for format in ["eps", "svg", "pdf"]:
+		fig.savefig(f"degree_of_chebyshev_polynomials_curve.{format}")
 
-	# data2 = np.array([[5,10,20,30,40], [0.035479288548231125, 0.05607824772596359, 0.002119426615536213, 0.002294833306223154, 0.002688765525817871]])
+	plt.close(fig)
 
-	# fig, ax = plot_data(
-	# 	use_log_scale=False,
-	# 	line_style='--',
-	# 	linewidth=1.5,
-	# 	color_index=0,
-	# 	xlabel="$n_s$",
-	# 	ylabel="$\mathscr{E}_{\\text{rel}}$",
-	# 	title="Number of Samples",
-	# 	show_markers=True,
-	# 	marker_size=60,
-	# 	marker_style='o'
-	# )
-	# plt.show()
-	# for format in ["eps", "svg", "pdf"]:
-	# 	fig.savefig(f"number_of_samples.{format}")
-	
+	data2 = np.array([[5,10,20,30,40], [0.035479288548231125, 0.05607824772596359, 0.002119426615536213, 0.002294833306223154, 0.002688765525817871]])
+
+	fig, ax = plot_data(
+		data2,
+		use_log_scale=False,
+		line_style='--',
+		linewidth=1.5,
+		color_index=3,
+		xlabel="$n_s$",
+		ylabel="$\mathscr{E}_{\\text{rel}}$",
+		title="Number of Samples",
+		show_markers=True,
+		marker_size=60,
+		marker_style='o'
+	)
+	plt.show()
+	for format in ["eps", "svg", "pdf"]:
+		fig.savefig(f"number_of_samples.{format}")
+	pass
 

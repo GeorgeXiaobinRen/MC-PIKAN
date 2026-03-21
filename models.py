@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import Layers as kal
+import layers as kal
 
 class CPIKANModel(nn.Module):
 	def __init__(self, input_dim=1, output_dim=1, num_layers=3, hidden_dim=10, degree=3, dtype=torch.float32):
@@ -12,7 +12,7 @@ class CPIKANModel(nn.Module):
 			for i in range(1, num_layers - 1):
 				self.lys.append(kal.ChebyKANLayer(hidden_dim, hidden_dim, degree, dtype)) # hidden-hidden
 		self.lys.append(kal.ChebyKANLayer(hidden_dim, output_dim, degree, dtype)) # hidden-output
-		self.name = "cPIKAN"
+		self.name = "PIKAN"
 		self.detailed_name = "cPIKAN with explicit expressions"
 
 	def forward(self, x):

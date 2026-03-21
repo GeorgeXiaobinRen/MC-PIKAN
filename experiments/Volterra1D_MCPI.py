@@ -23,10 +23,10 @@ if __name__ == "__main__":
 	# print(f"loss function return value: {result}")
 
 	# build model
-	m = 1
+	m = 0
 	num_layers = 3
 	hidden_dim = 10
-	degree = 6
+	degree = 3
 	if m==0:
 		hidden_dim *= 2
 		model = PINNModel(num_layers=num_layers, hidden_dim=hidden_dim, dtype=dtype).to(device)
@@ -52,32 +52,39 @@ if __name__ == "__main__":
 		residual = torch.abs(u_solution - u_pred)
 
 
-	# # create canvas and subplots
-	# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
-	# plt.rcParams['legend.fontsize'] = 15
-	#
-	# # left subplot
-	# ax1.plot(x_pred.detach().cpu(), u_pred.detach().cpu(), label="Exact solution", ls='--')
-	# ax1.plot(x_pred.detach().cpu(), u_solution.detach().cpu(), label="Predicted solution")
-	# ax1.set_xlabel("$x$", fontsize=15)
-	# ax1.set_ylabel("$u(x)$", fontsize=15)
-	# ax1.set_title(f"Solving 1D Volterra integral equation using MC-{model.name}", fontsize=20)
-	# ax1.legend()
-	# ax1.grid()
-	#
-	# # right subplot
-	# ax2.plot(x_pred.detach().cpu(), residual.detach().cpu(), label="Absolute error", color="red")
-	# ax2.set_xlabel("$x$", fontsize=15)
-	# ax2.set_ylabel("Absolute error (log scale)", fontsize=15)
-	# ax2.set_yscale('log')
-	# ax2.set_title("Absolute error between predicted and exact solution", fontsize=20)
-	# ax2.legend()
-	# ax2.grid()
-	# # display image
-	# plt.tight_layout()
-	# for format in ["eps", "pdf", "svg"]:
-	# 	plt.savefig(f"results/figure/Volterra1D_MC-{model.name}[{model_size}].{format}")
-	# plt.show()
+	# create canvas and subplots
+	fontsize = 20
+	plt.rcParams.update({"font.family": "serif",
+						 "font.serif": ["Times New Roman"],
+						 "mathtext.fontset": "stix",
+						 "legend.fontsize": fontsize})
+	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+
+	# left subplot
+	ax1.plot(x_pred.detach().cpu(), u_pred.detach().cpu(), label="Exact solution", ls='--')
+	ax1.plot(x_pred.detach().cpu(), u_solution.detach().cpu(), label="Predicted solution")
+	ax1.set_xlabel("$x$", fontsize=fontsize)
+	ax1.set_ylabel("$u(x)$", fontsize=fontsize)
+	ax1.set_title(f"Solving 1D Volterra integral equation using MC-{model.name}", fontsize=fontsize)
+	ax1.tick_params(axis='both', which='major', labelsize=fontsize)
+	ax1.legend()
+	ax1.grid()
+
+	# right subplot
+	ax2.plot(x_pred.detach().cpu(), residual.detach().cpu(), label="Absolute error", color="red")
+	ax2.set_xlabel("$x$", fontsize=fontsize)
+	ax2.set_ylabel("Absolute error (log scale)", fontsize=fontsize)
+	ax2.set_yscale('log')
+	ax2.set_title("Absolute error between predicted and exact solution", fontsize=fontsize)
+	ax2.tick_params(axis='both', which='major', labelsize=fontsize)
+	ax2.legend()
+	ax2.grid()
+	# display image
+	plt.tight_layout()
+	for format in ["eps", "pdf", "svg"]:
+		plt.savefig(f"results/figure/Volterra1D_MC-{model.name}[{model_size}].{format}")
+	plt.show()
 
 	relative_loss = torch.abs(residual).mean()/torch.abs(u_solution).mean()
 	l2_loss = torch.abs(residual).mean()

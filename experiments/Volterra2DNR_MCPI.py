@@ -11,14 +11,14 @@ from models import *
 
 if __name__ == "__main__":
 	plt.rcParams['axes.unicode_minus'] = False
-	setup_seed(233) # set up the random seed
+
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	dtype = torch.float32
-	n_s = 2000
-	n_e = 3000
+	n_s = 40
+	n_e = 4000
 
-	n_xi = 30
-	n_eta = 30
+	n_xi = 10
+	n_eta = 10
 	def create_X(n_xi, n_eta):
 		xi_grid = torch.linspace(0, 1, n_xi, device=device, dtype=dtype)
 		eta_min = xi_grid / 10
@@ -32,10 +32,13 @@ if __name__ == "__main__":
 		return X
 
 	X = create_X(n_xi, n_eta)
+
+	setup_seed(19)  # set up the random seed
 	s = torch.rand(n_s, 2, device=device, dtype=dtype)
 	question = Volterra2DNR(X_grid=X, s=s)
-	result = question.loss_fn(question.solution)
-	print(f"loss function return value: {result}")
+	# result = question.loss_fn(question.solution)
+	# print(f"loss function return value: {result}")
+
 
 	# build model
 	m = 1
@@ -50,12 +53,12 @@ if __name__ == "__main__":
 
 	# train model
 	time0 = time.time()
-	train(model, question, lr=0.01, max_epochs=n_e, dynamic_lr=False)
+	train(model, question, lr=0.001, max_epochs=n_e, dynamic_lr=False)
 	time1 = time.time()
 	print("Training time: " + str(time1 - time0) + "s")
 	# prediction result
 	with torch.no_grad():
-		X_pred=create_X(100, 100)
+		X_pred=create_X(500, 500)
 		u_pred = model(X_pred)
 		u_solution = question.solution(X_pred).view(-1, 1)
 		residual = torch.abs(u_solution - u_pred)
