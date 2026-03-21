@@ -1,6 +1,5 @@
-import time, os, sys
-# Add project root to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import time
+import numpy as np
 
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
@@ -62,4 +61,11 @@ if __name__ == "__main__":
 		u_pred = model(X_pred)
 		u_solution = question.solution(X_pred).view(-1, 1)
 		residual = torch.abs(u_solution - u_pred)
+		# Save X_pred, u_pred, and u_solution to a .npy file
+		data_to_save = {
+			'X_pred': X_pred.cpu().numpy(),
+			'u_pred': u_pred.cpu().numpy(),
+			'u_solution': u_solution.cpu().numpy()
+		}
+		np.save('../results/data/2DNR_PIKAN[3,10,3]S40results.npy', data_to_save, allow_pickle=True)
 		print(torch.mean(residual))
