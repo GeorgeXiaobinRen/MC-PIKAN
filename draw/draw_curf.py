@@ -8,27 +8,6 @@ import seaborn as sns
 def plot_data(data, use_log_scale=False, line_style='-', linewidth=1.5,
 			   color_index=0, label=None, xlabel="X", ylabel="Y", title="Data1 Curve",
 			   show_markers=False, marker_size=60, marker_style='o'):
-	"""
-	Plot the data1 curve with configurable y-axis scale and line style.
-
-	Args:
-		ax: Matplotlib axes object (if None, creates new figure and axes)
-		use_log_scale: If True, set y-axis to logarithmic scale (default: False)
-		line_style: Line style string (e.g., '-', '--', '-.', ':') (default: '-')
-		linewidth: Line width (default: 1.5)
-		color_index: Index into the seaborn "deep" color palette (default: 0)
-		label: Legend label for this curve (default: None)
-		xlabel: X-axis label (default: "X")
-		ylabel: Y-axis label (default: "Y")
-		title: Plot title (default: "Data1 Curve")
-		show_markers: If True, overlay scatter markers on data points (default: False)
-		marker_size: Size of scatter markers (default: 60)
-		marker_style: Marker shape, e.g. 'o', 's', 'D', '^' (default: 'o')
-
-	Returns:
-		fig: Figure object (created if ax is None)
-		ax: Axes object
-	"""
 	sns.set_theme(style="ticks", context="paper", font_scale=1.4)
 	plt.rcParams.update({
 			"font.family": "serif",
@@ -76,8 +55,8 @@ def plot_data(data, use_log_scale=False, line_style='-', linewidth=1.5,
 
 if __name__ == "__main__":
 	data1 = np.array([[1, 2, 3, 4, 5, 6],
-					  [0.0752912387251854, 0.004333922639489174, 0.002688765525817871, 0.003336397232487797,
-					   0.001569639891386032, 0.0017865969566628337]])
+					  [0.08179549127817154, 0.005374509375542402, 0.0028772600926458836, 0.0035432027652859688,
+					   0.001898447168059647, 0.0019332696683704853]])
 
 	fig, ax = plot_data(
 		data1,
@@ -98,7 +77,7 @@ if __name__ == "__main__":
 
 	plt.close(fig)
 
-	data2 = np.array([[5,10,20,30,40], [0.035479288548231125, 0.05607824772596359, 0.002119426615536213, 0.002294833306223154, 0.002688765525817871]])
+	data2 = np.array([[5,10,20,30,40], [0.04323914647102356, 0.06738028675317764, 0.0024911907967180014, 0.002716680755838752, 0.0028772600926458836]])
 
 	fig, ax = plot_data(
 		data2,
@@ -114,7 +93,7 @@ if __name__ == "__main__":
 		marker_style='o'
 	)
 	plt.show()
-	for format in ["eps", "svg", "pdf"]:
+	for format in ["pdf"]:
 		fig.savefig(f"number_of_samples.{format}")
 	pass
 

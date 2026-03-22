@@ -2,12 +2,15 @@ import torch, os
 import numpy as np
 from tqdm import tqdm
 
-def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5, save_path="results/best_model.pth", loss_history_path="results/loss_history.npy"):
+def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=20, opt_method="Adam", dynamic_lr=False, lr_iter=2000, lr_decay=0.5, save_path="results/best_model.pth", loss_history_path="results/loss_history.npy"):
 	print("Start training...")
 	print(f"Max Epochs: {max_epochs}, Learning Rate: {lr}, Epsilon: {epsilon}, Optimizer: {opt_method}")
 
 	try:
-		optimizer = torch.optim.__dict__[opt_method](model.parameters(), lr=lr)
+		if opt_method == "LBFGS":
+			optimizer = torch.optim.LBFGS(model.parameters(), lr=lr, max_iter=max_epochs, max_eval=None, history_size=50, line_search_fn=None)
+		else:
+			optimizer = torch.optim.__dict__[opt_method](model.parameters(), lr=lr)
 	except:
 		raise ValueError("Invalid optimizer method.")
 
@@ -23,10 +26,18 @@ def train(model, problem, max_epochs=1000, lr=1e-3, epsilon=1e-20, show_iter=200
 
 	pbar = tqdm(range(max_epochs), desc="Training", unit="epoch")
 	for epoch in pbar:
-		optimizer.zero_grad()
-		loss = problem.loss_fn(model)
-		loss.backward()
-		optimizer.step()
+		if opt_method == "LBFGS":
+			def closure():
+				optimizer.zero_grad()
+				loss = problem.loss_fn(model)
+				loss.backward()
+				return loss
+			loss = optimizer.step(closure)
+		else:
+			optimizer.zero_grad()
+			loss = problem.loss_fn(model)
+			loss.backward()
+			optimizer.step()
 
 		loss_val = loss.item()
 		loss_history.append(loss_val)

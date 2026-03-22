@@ -40,11 +40,12 @@ if __name__ == "__main__":
     for ax, (title, data_plot) in zip(axes, plot_data):
         # Use pcolormesh with gouraud shading for a perfectly smooth continuous colormap
         mesh = ax.pcolormesh(Eta, Xi, data_plot, cmap='mako', shading='gouraud', rasterized=True)
+        ax.contour(Eta, Xi, data_plot, levels=20, colors='white', linewidths=0.5, alpha=0.5)
         fig.colorbar(mesh, ax=ax)
         ax.axis('scaled')
         ax.set_title(title)
-        ax.set_xlabel(r'$\eta$')
-        ax.set_ylabel(r'$\xi$')
+        # ax.set_xlabel(r'$\eta$')
+        # ax.set_ylabel(r'$\xi$')
 
     for format in ['pdf']:
         save_path = r'e:\PythonProjectsByYear\Year2025\MC-PIKAN_Official\results\Volterra2DNR_MC-CPIKAN.' + format

@@ -82,12 +82,13 @@ if __name__ == "__main__":
 	ax2.grid()
 	# display image
 	plt.tight_layout()
-	for format in ["eps", "pdf", "svg"]:
-		plt.savefig(f"results/figure/Volterra1D_MC-{model.name}[{model_size}].{format}")
+	# for format in ["pdf"]:
+	# 	plt.savefig(f"results/figure/Volterra1D_MC-{model.name}[{model_size}].{format}", dpi=300)
 	plt.show()
 
-	relative_loss = torch.abs(residual).mean()/torch.abs(u_solution).mean()
-	l2_loss = torch.abs(residual).mean()
+	l2_loss = torch.linalg.norm(residual, ord=2)
+	relative_loss = l2_loss/torch.linalg.norm(u_solution, ord=2)
+
 	print(f"Relative loss: {relative_loss.item()}")
 	print(f"L2 loss: {l2_loss.item()}")
 

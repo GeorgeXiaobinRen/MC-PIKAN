@@ -6,6 +6,8 @@ class CPIKANModel(nn.Module):
 	def __init__(self, input_dim=1, output_dim=1, num_layers=3, hidden_dim=10, degree=3, dtype=torch.float32):
 		super(CPIKANModel, self).__init__()
 		self.num_layers = num_layers
+		self.hidden_dim = hidden_dim
+		self.degree = degree
 		self.lys = nn.ModuleList()
 		self.lys.append(kal.ChebyKANLayer(input_dim, hidden_dim, degree, dtype)) # input-hidden
 		if num_layers >= 3:

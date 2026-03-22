@@ -14,7 +14,7 @@ if __name__ == "__main__":
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	dtype = torch.float32
 	n_s = 40
-	n_e = 4000
+	n_e = 5000
 
 	n_xi = 10
 	n_eta = 10
@@ -68,4 +68,4 @@ if __name__ == "__main__":
 			'u_solution': u_solution.cpu().numpy()
 		}
 		np.save('../results/data/2DNR_PIKAN[3,10,3]S40results.npy', data_to_save, allow_pickle=True)
-		print(torch.mean(residual))
+		print(torch.linalg.norm(residual, ord=2)/torch.linalg.norm(u_solution, ord=2))
