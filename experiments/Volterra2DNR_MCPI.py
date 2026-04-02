@@ -3,7 +3,6 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from random_seed import setup_seed
-from torchinfo import summary
 from problems.Volterra import Volterra2DNR
 from train import train
 from models import *

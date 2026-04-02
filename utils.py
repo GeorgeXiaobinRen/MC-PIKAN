@@ -11,12 +11,11 @@ def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", 
 
 	for i in range(dim):  # iterate through each dimension
 		for fixed_val in [0.0, 1.0]:
-			# generate random points
 			points = torch.rand(num_samples_per_boundary, dim, dtype=dtype)
 			points[:, i] = fixed_val
 			boundaries.append(points)
 
-	# combine all boundary points
+	# combine all points
 	boundary_tensor = torch.stack(boundaries).to(device)
 	if bound:
 		boundary_tensor = boundary_tensor.view(-1, dim)
@@ -26,11 +25,6 @@ def sample_boundary_points(dim=10, num_samples_per_boundary=1000, device="cpu", 
 def generate_full_grid_torch(dim=10, points_per_dim=2, device='cpu', dtype=torch.float32):
 	"""
 	Generate a uniform grid for [0,1]^dim (PyTorch implementation)
-	:param dtype: Data type
-	:param dim: Dimension
-	:param points_per_dim: Number of points per dimension
-	:param device: Device ('cpu' or 'cuda')
-	:return: Grid tensor with shape (points_per_dim^dim, dim)
 	"""
 	# Generate coordinate values for each dimension (equally spaced)
 	axis_values = torch.linspace(0, 1, points_per_dim, device=device, dtype=dtype)
@@ -47,22 +41,10 @@ def generate_full_grid_torch(dim=10, points_per_dim=2, device='cpu', dtype=torch
 def generate_grid_with_specific_dims(fixed_values, variable_dims_indices=None, n_points=5, dtype=torch.float32):
 	"""
 	Generate a [0,1]^10 grid with specified dimensions as variables and the rest as fixed
-
-	Parameters:
-		fixed_values: A list/tensor of length (10 - len(variable_dims_indices)), 
-		             representing values for fixed dimensions (in non-variable dimension order)
-		variable_dims_indices: Indices of variable dimensions (0-indexed, e.g., 3rd and 5th dimensions are [2,4])
-		                       If None, defaults to [2, 4]
-		n_points: Number of grid points for each variable dimension
-		dtype: Data type for the output tensor
-
-	Returns:
-		grid: A tensor of shape (n_points^len(variable_dims_indices), 10)
 	"""
-	# Set default value if not provided
 	if variable_dims_indices is None:
 		variable_dims_indices = [2, 4]
-	
+
 	# Convert fixed values to tensor
 	fixed = torch.tensor(fixed_values, dtype=dtype)
 	n_variable = len(variable_dims_indices)

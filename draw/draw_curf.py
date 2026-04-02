@@ -19,34 +19,31 @@ def plot_data(data, use_log_scale=False, line_style='-', linewidth=1.5,
 		})
 	fig, ax = plt.subplots(figsize=(6, 5))
 
-	# Extract data
 	x_data = data[0, :]
 	y_data = data[1, :]
 
-	# Plot the curve
 	curve_color = sns.color_palette("deep")[color_index]
 	ax.plot(x_data, y_data, linestyle=line_style, linewidth=linewidth,
 			color=curve_color, label=label)
 
-	# Overlay scatter markers on data points
 	if show_markers:
 		ax.scatter(x_data, y_data, s=marker_size, marker=marker_style,
 				   color=curve_color, edgecolors='white', linewidths=1.2, zorder=5)
 
-	# Set y-axis scale
+	# y-axis scale
 	if use_log_scale:
 		ax.set_yscale("log")
 
-	# Set labels and title
+	# labels and title
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
 	ax.set_title(title)
 
-	# Add grid
+	# grid
 	ax.yaxis.grid(True, linestyle="--", linewidth=0.8, alpha=0.7, color="gray")
 	sns.despine()
 
-	# Add legend if label is provided
+	# legend
 	if label is not None:
 		ax.legend(frameon=True, fancybox=False, edgecolor="black", fontsize=12)
 

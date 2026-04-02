@@ -6,11 +6,6 @@ import seaborn as sns
 def plot_loss_history(ax, filepath="results/loss_history.npy", color_index=0, label=None):
     """
     Load a loss history .npy file and plot the loss curve.
-
-    Args:
-        filepath: Path to the .npy file containing loss history.
-        color_index: Index into the seaborn "deep" color palette.
-        label: Legend label for this curve.
     """
     # Academic paper style
     loss = np.load(filepath)

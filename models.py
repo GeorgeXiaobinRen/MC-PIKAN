@@ -3,6 +3,7 @@ import torch.nn as nn
 import layers as kal
 
 class CPIKANModel(nn.Module):
+	"""Explicit form"""
 	def __init__(self, input_dim=1, output_dim=1, num_layers=3, hidden_dim=10, degree=3, dtype=torch.float32):
 		super(CPIKANModel, self).__init__()
 		self.num_layers = num_layers
@@ -24,6 +25,7 @@ class CPIKANModel(nn.Module):
 
 
 class Unoptd_cPIKANModel(nn.Module):
+	"""Recursive relation"""
 	def __init__(self, input_dim=1, output_dim=1, num_layers=3, hidden_dim=10, degree=3, dtype=torch.float32):
 		super(Unoptd_cPIKANModel, self).__init__()
 		self.num_layers = num_layers

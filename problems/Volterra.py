@@ -10,6 +10,7 @@ class Volterratype:
 
 
 class Volterra1D(Volterratype):
+	"""1D bounded kernel problem"""
 	def __init__(self, X_grid, s, K=None, f=None, solution=None):
 		super().__init__(X_grid, s)
 		self.x_e = self.X_grid.view(-1, 1).expand(-1, self.N_s)
@@ -30,6 +31,7 @@ class Volterra1D(Volterratype):
 
 
 class Volterra2DNR(Volterratype):
+	"""2D nonlinear problem on non-rectangular domain"""
 	def __init__(self, X_grid, s, f=None, solution=None):
 		super().__init__(X_grid, s)
 		X_e = X_grid.unsqueeze(1).expand(-1, self.N_s, -1)
@@ -59,6 +61,7 @@ class Volterra2DNR(Volterratype):
 
 
 class Volterra10D(Volterratype):
+	"""High dimensional bounded kernel problem"""
 	def __init__(self, X_grid, X_boundary, s, f=None, solution=None, integral=None):
 		super().__init__(X_grid, s)
 		self.X_boundary = X_boundary
@@ -83,9 +86,9 @@ class Volterra10D(Volterratype):
 		sum_of_partials = torch.sum(gradients, dim=1).view(-1, )
 		loss_bc = torch.mean((sum_of_partials - self.f(self.X_boundary).view(-1, )) ** 2)
 
-		# """
-		# The functionality for selecting weights in the loss function should be improved in the future
-		# """
+		"""
+		The functionality for selecting weights in the loss function should be improved in the future
+		"""
 		if mode == "adaptive":
 			# Use a more stable adaptive weighting (e.g., balancing based on log scale or normalized values)
 			# Here we use a simpler but more robust normalization

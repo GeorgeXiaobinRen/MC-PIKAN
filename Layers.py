@@ -20,17 +20,15 @@ class ChebyKANLayer(nn.Module):
         self.register_buffer("arange", torch.arange(0, degree + 1, 1, dtype=dtype))
 
     def forward(self, x):
-        # Normalize x to [-1, 1] using tanh
+        # normalization
         x = torch.tanh(x)
-        # View and repeat input degree + 1 times
         x = x.view((-1, self.inputdim, 1)).expand(
             -1, -1, self.degree + 1
         )  # shape = (batch_size, inputdim, self.degree + 1)
         x = x.acos()
-        # Multiply by arange [0 .. degree]
-        x *= self.arange
+        x *= self.arange  # Multiply by arange [0 .. degree]
         x = x.cos()
-        # Compute the Chebyshev interpolation
+        # ccompute the Chebyshev interpolation
         y = torch.einsum(
             "bid,iod->bo", x, self.weight
         )  # shape = (batch_size, outdim)
@@ -92,10 +90,8 @@ class JacobiKANLayer(nn.Module):
 
     def forward(self, x):
         x = torch.reshape(x, (-1, self.inputdim))  # shape = (batch_size, inputdim)
-        # Since Jacobi polynomial is defined in [-1, 1]
-        # We need to normalize x to [-1, 1] using tanh
         x = torch.tanh(x)
-        # Initialize Jacobi polynomial tensors
+        # Jacobi polynomial tensors
         jacobi = torch.ones(x.shape[0], self.inputdim, self.degree + 1, device=x.device)
         if self.degree > 0:  ## degree = 0: jacobi[:, :, 0] = 1 (already initialized) ; degree = 1: jacobi[:, :, 1] = x ; d
             jacobi[:, :, 1] = ((self.a - self.b) + (self.a + self.b + 2) * x) / 2

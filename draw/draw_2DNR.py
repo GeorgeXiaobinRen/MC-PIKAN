@@ -38,7 +38,6 @@ if __name__ == "__main__":
     ]
 
     for ax, (title, data_plot) in zip(axes, plot_data):
-        # Use pcolormesh with gouraud shading for a perfectly smooth continuous colormap
         mesh = ax.pcolormesh(Eta, Xi, data_plot, cmap='mako', shading='gouraud', rasterized=True)
         ax.contour(Eta, Xi, data_plot, levels=20, colors='white', linewidths=0.5, alpha=0.5)
         fig.colorbar(mesh, ax=ax)
